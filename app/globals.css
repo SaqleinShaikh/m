@@ -1,0 +1,440 @@
+@import "tailwindcss";
+
+:root {
+  /* Updated light theme to clean white-black with blue secondary */
+  --background: #ffffff; /* Pure white background */
+  --foreground: #000000; /* Pure black text */
+  --card: #f8f9fa; /* Very light grey cards */
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #000000; /* Black primary */
+  --primary-foreground: #ffffff;
+  --secondary: #3b82f6; /* Blue secondary */
+  --secondary-foreground: #ffffff;
+  --muted: #f1f3f4; /* Light grey muted */
+  --muted-foreground: #060606; /* Medium grey text */
+  --accent: #1E40AF; /* Light grey accent */
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444; /* Red for errors */
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb; /* Light grey borders */
+  --input: #f9fafb; /* Very light grey inputs */
+  --ring: #3b82f6; /* Blue focus ring */
+  --chart-1: #3b82f6;
+  --chart-2: #000000;
+  --chart-3: #6b7280;
+  --chart-4: #9ca3af;
+  --chart-5: #d1d5db;
+  --radius: 0.75rem;
+  --sidebar: #f8f9fa;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3b82f6;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #3b82f6;
+}
+
+.dark {
+  /* Updated dark theme to clean black-white with cyan secondary */
+  --background: #000000; /* Pure black background */
+  --foreground: #ffffff; /* Pure white text */
+  --card: #111111; /* Very dark grey cards */
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff; /* White primary */
+  --primary-foreground: #000000;
+  --secondary: #06b6d4; /* Cyan secondary */
+  --secondary-foreground: #000000;
+  --muted: #1f2937; /* Dark grey muted */
+  --muted-foreground: #9ca3af; /* Light grey text */
+  --accent: #0ac5b2; /* Medium grey accent */
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444; /* Red for errors */
+  --destructive-foreground: #ffffff;
+  --border: #374151; /* Dark grey borders */
+  --input: #1f2937; /* Dark grey inputs */
+  --ring: #06b6d4; /* Cyan focus ring */
+  --chart-1: #06b6d4;
+  --chart-2: #ffffff;
+  --chart-3: #9ca3af;
+  --chart-4: #6b7280;
+  --chart-5: #4b5563;
+  --sidebar: #111111;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #06b6d4;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #374151;
+  --sidebar-ring: #06b6d4;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    transition: color-scheme 0.3s ease;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Removed all text glow effects and kept only smooth animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes subtleFloat {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes cardHover {
+    0%,
+    100% {
+      transform: translateY(0px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    50% {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  @keyframes borderPulse {
+    0%,
+    100% {
+      border-color: var(--border);
+    }
+    50% {
+      border-color: var(--secondary);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.8s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.8s ease-out;
+  }
+
+  .animate-subtle-float {
+    animation: subtleFloat 4s ease-in-out infinite;
+  }
+
+  .animate-card-hover {
+    animation: cardHover 3s ease-in-out infinite;
+  }
+
+  .animate-border-pulse {
+    animation: borderPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes rotate3d {
+    from {
+      transform: rotateY(0deg) rotateX(0deg);
+    }
+    to {
+      transform: rotateY(360deg) rotateX(360deg);
+    }
+  }
+
+  .animate-rotate-3d {
+    animation: rotate3d 20s linear infinite;
+  }
+
+  /* Updated scrollbar with clean styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  /* Removed glow effects from gradient text */
+  .gradient-text {
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Updated card styles without glow effects */
+  .modern-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-card:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Updated flow elements without glow */
+  .mendix-flow {
+    position: relative;
+  }
+
+  .mendix-flow::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -20px;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--secondary), transparent);
+    animation: flowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes flowPulse {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Updated theme toggle without glow effects */
+  .theme-toggle {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    background: var(--muted);
+    border-radius: 15px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .theme-toggle:hover {
+    background: var(--accent);
+    border-color: var(--secondary);
+  }
+
+  .theme-toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    background: var(--secondary);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--secondary-foreground);
+  }
+
+  .dark .theme-toggle-slider {
+    transform: translateX(26px);
+    background: var(--secondary);
+  }
+
+  /* Updated button styles without glow effects */
+  .modern-btn {
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .modern-btn:hover {
+    background: var(--secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+
+  .modern-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .modern-btn:hover::before {
+    left: 100%;
+  }
+
+  /* Added clean utility classes without glow effects */
+  .clean-border {
+    border: 1px solid var(--secondary);
+  }
+
+  .subtle-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .hover-lift {
+    transition: transform 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+
+/* Fade in up animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

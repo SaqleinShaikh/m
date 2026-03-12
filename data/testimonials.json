@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Rajesh Kumar",
+    "email": "rajesh@tcs.com",
+    "designation": "Senior Project Manager",
+    "organization": "TCS",
+    "testimonial": "Saqlein is an exceptional Mendix developer who consistently delivers high-quality solutions.",
+    "image": "/placeholder.svg?height=80&width=80&text=RK",
+    "rating": 5,
+    "approved": true,
+    "createdAt": "2026-03-01T07:42:26.148Z"
+  }
+]
