@@ -91,7 +91,7 @@ export default function VideoResumeSection() {
                 <p className="text-muted-foreground mb-4">
                   A 3-minute overview of my professional journey, technical expertise, and what drives me as a Mendix
                   developer. Learn about my experience at TCS and Deloitte, my approach to problem-solving, and my
-                  passion for creating innovative digital solutions for modern era.
+                  passion for creating innovative digital solutions.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
