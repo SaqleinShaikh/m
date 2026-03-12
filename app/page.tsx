@@ -116,9 +116,13 @@ export default function HomePage() {
                   <Card className="p-8 bg-card/50 backdrop-blur-sm border-2 border-accent/20 animate-float">
                     <div className="relative">
                       <img
-                        src="/header-light.PNG"
+                        src="/header-light.png"
                         alt="Saqlein Shaikh holding a coffee cup"
                         className="w-80 h-96 object-cover rounded-lg shadow-2xl"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder-user.jpg";
+                        }}
                       />
                       <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-accent to-secondary text-accent-foreground p-3 rounded-full shadow-lg animate-bounce">
                         <Coffee className="h-6 w-6" />

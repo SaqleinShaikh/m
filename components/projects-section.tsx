@@ -84,6 +84,10 @@ export default function ProjectsSection() {
                       src={project.image || "/placeholder.svg"}
                       alt={project.title}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder.svg";
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <Dialog>
@@ -111,6 +115,10 @@ export default function ProjectsSection() {
                                   src={selectedProject.image || "/placeholder.svg"}
                                   alt={selectedProject.title}
                                   className="w-full h-64 object-cover rounded-lg border border-accent/20"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "/placeholder.svg";
+                                  }}
                                 />
 
                                 <div>
