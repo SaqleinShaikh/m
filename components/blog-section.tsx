@@ -118,6 +118,15 @@ export default function BlogSection() {
                   </div>
                 </div>
 
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); router.push(`/blogs/${blog.slug}`) }}
+                    className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium"
+                  >
+                    Read More →
+                  </button>
+                </div>
+
               </CardContent>
             </Card>
           ))}

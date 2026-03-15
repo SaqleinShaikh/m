@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import emailjs from "@emailjs/browser"
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,40 +26,31 @@ export default function ContactSection() {
     setIsSubmitting(true)
     setError(null)
 
-    const serviceId = "service_4vxbqfl"
-    const templateId = "template_m2lnt5e"
-    const publicKey = "bnqqD--4sr0yUKWfx"
-
-    if (!serviceId || !templateId || !publicKey) {
-      setError(
-        "Email is not configured. Add NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY in Project Settings.",
-      )
-      setIsSubmitting(false)
-      return
-    }
-
     try {
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
+      const response = await fetch('/api/send-contact-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: formData.message + 'From' + formData.email,
-          from_name: formData.name,
-          from_email: formData.email,
-          reply_to: formData.email,
-          to_email: "saqleinsheikh43@gmail.com",
-        },
-        publicKey,
-      )
+          message: formData.message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message');
+      }
 
       setIsSubmitted(true)
       setFormData({ name: "", email: "", message: "" })
       setTimeout(() => setIsSubmitted(false), 5000)
     } catch (err) {
-      console.error("[v0] EmailJS send error:", err)
-      setError("Failed to send message. Please try again in a moment.")
+      console.error('Contact form error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

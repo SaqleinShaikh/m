@@ -27,6 +27,8 @@ export default function TestimonialsSection() {
   const [showAllTestimonials, setShowAllTestimonials] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedOrganization, setSelectedOrganization] = useState("All")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
@@ -99,57 +101,34 @@ export default function TestimonialsSection() {
       alert("Please fill in all required fields (Name, Email, and Testimonial)")
       return
     }
-
-    // Check consent if no image uploaded
     if (!imageFile && !imageConsent) {
       alert("Please either upload your profile image or provide consent to use your image from social media")
       return
     }
 
+    setIsSubmitting(true)
     try {
-      let imageUrl = ""
-      
-      // If image file is uploaded, convert to base64
-      if (imageFile) {
-        imageUrl = imagePreview
-      }
-
+      const imageUrl = imageFile ? imagePreview : ""
       const response = await fetch('/api/testimonials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newTestimonial,
-          image: imageUrl,
-          rating: 5,
-          approved: false
-        })
+        body: JSON.stringify({ ...newTestimonial, image: imageUrl, rating: 5, approved: false })
       })
-
       const data = await response.json()
-
       if (response.ok) {
-        alert("Thank you! Your testimonial has been submitted for approval and will appear after review.")
-        setNewTestimonial({
-          name: "",
-          email: "",
-          designation: "",
-          organization: "",
-          testimonial: "",
-          image: "",
-        })
+        setSubmitSuccess(true)
+        setNewTestimonial({ name: "", email: "", designation: "", organization: "", testimonial: "", image: "" })
         setImageFile(null)
         setImagePreview("")
         setImageConsent(false)
-        setIsAddModalOpen(false)
-        // Refresh testimonials list
         fetchTestimonials()
       } else {
-        console.error('Server error:', data)
-        alert(`Failed to submit testimonial: ${data.details || data.error || 'Unknown error'}`)
+        alert(`Failed to submit: ${data.details || data.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Failed to submit testimonial:', error)
       alert("Failed to submit testimonial. Please check your connection and try again.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -270,6 +249,28 @@ export default function TestimonialsSection() {
                 <DialogTitle className="text-2xl font-serif text-primary">Add Your Testimonial</DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
+
+                {/* Success state */}
+                {submitSuccess ? (
+                  <div className="py-8 text-center space-y-4">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">Testimonial Submitted!</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                      Thank you for sharing your experience. Your testimonial has been sent for review and a confirmation email has been sent to you. It will appear on the website once approved.
+                    </p>
+                    <button
+                      onClick={() => { setSubmitSuccess(false); setIsAddModalOpen(false) }}
+                      className="flex items-center gap-1 text-sm text-accent hover:text-accent/80 transition-colors font-medium mx-auto"
+                    >
+                      Close
+                    </button>
+                  </div>
+                ) : (
+                  <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="testimonial-name" className="text-sm font-medium">Full Name *</Label>
@@ -391,13 +392,27 @@ export default function TestimonialsSection() {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button onClick={handleSubmitTestimonial} className="flex-1">
-                    Submit for Approval
+                  <Button
+                    onClick={handleSubmitTestimonial}
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Please wait...
+                      </span>
+                    ) : "Submit for Approval"}
                   </Button>
-                  <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="flex-1">
+                  <Button variant="outline" onClick={() => setIsAddModalOpen(false)} disabled={isSubmitting} className="flex-1">
                     Cancel
                   </Button>
                 </div>
+                </>
+                )}
               </div>
             </DialogContent>
           </Dialog>
