@@ -100,7 +100,7 @@ const blog1Content = `
 
 <h2>💡 Key Takeaways</h2>
 
-<p>The combination of Mendix's low-code platform with Agentic AI represents a paradigm shift in how enterprise applications are built. As a Mendix developer, staying ahead of these trends means:</p>
+<p>The combination of  's low-code platform with Agentic AI represents a paradigm shift in how enterprise applications are built. As a Mendix developer, staying ahead of these trends means:</p>
 
 <ol>
   <li><strong>Learning prompt engineering</strong> to effectively communicate with AI development assistants</li>
