@@ -75,22 +75,78 @@ INSERT INTO projects (
   3
 ),
 (
-  'SmartClaim Processing System',
-  'Intelligent claims processing application with automated validation and approval workflows.',
-  'An advanced claims processing system that leverages machine learning algorithms to automatically validate and process insurance claims. The system reduces manual intervention, improves processing speed, and ensures compliance with regulatory requirements. It includes fraud detection capabilities and integrates with multiple insurance providers.',
-  '/SmartClaim.png',
-  ARRAY['Mendix', 'AI/ML', 'PostgreSQL', 'REST API'],
+  'Limit of Authority (LOA)',
+  'Finance application to automate warranty extension and approval processes.',
+  'Built an application to automate approval workflows for extending warranties and retention periods for products. Managed complex business logic to ensure accurate approvals and efficient system functioning. The system streamlines the entire approval chain with role-based authorization levels and comprehensive audit trails.',
+  '/LOA.png',
+  ARRAY['Mendix', 'Workflows', 'Microflows', 'PostgreSQL'],
   ARRAY[
-    'AI-powered claim validation and fraud detection',
-    'Automated document processing and OCR',
-    'Real-time claim status tracking for customers',
-    'Integration with multiple insurance providers',
-    'Regulatory compliance and audit reporting',
-    'Mobile-responsive customer portal',
-    'Advanced analytics and performance metrics'
+    'Automated warranty extension process',
+    'Retention period approval workflows',
+    'Complex business logic handling',
+    'Workflow automation with multi-level approvals',
+    'Role-based authorization levels',
+    'Comprehensive audit trail and reporting'
   ],
   '#',
   '#',
   true,
   4
+),
+(
+  'Employee Separation Process',
+  'Application to streamline employee exit workflows and resignation management.',
+  'Led the development of an application to manage employee resignation processes. Delivered within a one-month deadline by designing complex workflows, UI pages, automated notifications, jobs, and business logic. The system handles the complete separation lifecycle from resignation initiation to final clearance.',
+  '/SEP.png',
+  ARRAY['Mendix', 'PostgreSQL', 'Microflows', 'CSS'],
+  ARRAY[
+    'Employee resignation initiation and tracking',
+    'Multi-level approval workflows',
+    'Custom UI pages with responsive design',
+    'Automated email notifications and reminders',
+    'Scheduled jobs for process automation',
+    'Comprehensive business logic implementation'
+  ],
+  '#',
+  '#',
+  true,
+  5
+),
+(
+  'Smart Claims / Debit Note',
+  'Finance application for handling claims and debit notes in FMCG domain.',
+  'Developed an application from scratch for a large FMCG client to manage B2B/B2C claims, sanctioning, expense ID generation, and PO creation. Designed business logic, workflows, validations, and visibility rules to enhance system capabilities.',
+  '/SmartClaim.png',
+  ARRAY['Mendix', 'PostgreSQL', 'Microflows', 'REST API'],
+  ARRAY[
+    'Claims and debit note management',
+    'B2B and B2C workflow processing',
+    'Automated sanctioning and PO generation',
+    'Expense ID generation system',
+    'Validations and visibility control rules',
+    'Comprehensive reporting and analytics'
+  ],
+  '#',
+  '#',
+  true,
+  6
+),
+(
+  'Centralized User Application',
+  'Application for managing user terminations and compliance across the enterprise.',
+  'Designed and maintained an enterprise-level application to manage user termination processes. Implemented audit trail mechanisms, performed root cause analysis, and optimized complex pre-developed jobs to ensure compliance and performance.',
+  '/CUA.png',
+  ARRAY['Mendix', 'PostgreSQL', 'Microflows', 'Workflows'],
+  ARRAY[
+    'Automated user termination process',
+    'Audit trail mechanism for compliance',
+    'Impact analysis and documentation',
+    'Root cause analysis and debugging tools',
+    'Change request implementation workflow',
+    'Performance optimization for batch jobs'
+  ],
+  '#',
+  '#',
+  true,
+  7
 );
