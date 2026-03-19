@@ -16,7 +16,7 @@ const navigationMap = {
   education: { name: "Education", href: "#education" },
   certifications: { name: "Certifications & Awards", href: "#certifications" },
   blogs: { name: "Blogs", href: "#blogs" },
-  testimonials: { name: "Testimonials", href: "#testimonials" },
+  endorsements: { name: "Endorsements", href: "#endorsements" },
   video: { name: "Video Resume", href: "#video-resume" },
   contact: { name: "Contact Me", href: "#contact" },
   // Note: profile_photo is not included in navigation as it's not a navigable section

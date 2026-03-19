@@ -70,7 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_published_date ON blog_posts(published
 -- =====================================================
 CREATE TABLE IF NOT EXISTS email_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type TEXT NOT NULL CHECK (type IN ('contact', 'testimonial')),
+    type TEXT NOT NULL CHECK (type IN ('contact', 'endorsement')),
     from_name TEXT NOT NULL,
     from_email TEXT NOT NULL,
     subject TEXT,
@@ -213,7 +213,7 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                    WHERE table_name='email_messages' AND column_name='type') THEN
-        ALTER TABLE email_messages ADD COLUMN type TEXT NOT NULL DEFAULT 'contact' CHECK (type IN ('contact', 'testimonial'));
+        ALTER TABLE email_messages ADD COLUMN type TEXT NOT NULL DEFAULT 'contact' CHECK (type IN ('contact', 'endorsement'));
     END IF;
 END $$;
 

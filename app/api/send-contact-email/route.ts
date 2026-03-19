@@ -129,7 +129,7 @@ export async function POST(request: Request) {
 
               <!-- Call-to-action button -->
               <div style="text-align: center; margin: 35px 0;">
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://your-portfolio-url.com'}" 
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://your-portfolio-url.com'}" 
                    style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
                   Explore My Portfolio
                 </a>
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
                   <li style="margin-bottom: 8px;">💼 <strong>Professional Experience:</strong> Journey at Deloitte and beyond</li>
                   <li style="margin-bottom: 8px;">🛠️ <strong>Technical Skills:</strong> Mendix development expertise and certifications</li>
                   <li style="margin-bottom: 8px;">📝 <strong>Blog Posts:</strong> Insights on development and technology trends</li>
-                  <li style="margin-bottom: 8px;">⭐ <strong>Client Testimonials:</strong> Feedback from successful collaborations</li>
+                  <li style="margin-bottom: 8px;">⭐ <strong>Client Endorsements:</strong> Feedback from successful collaborations</li>
                 </ul>
               </div>
 

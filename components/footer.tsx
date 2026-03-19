@@ -32,7 +32,7 @@ export default function Footer() {
     education: "Education",
     certifications: "Certifications",
     blogs: "Blogs",
-    testimonials: "Testimonials",
+    endorsements: "Endorsements",
     video: "Video Resume",
     contact: "Contact"
     // Note: profile_photo excluded from footer links as it's not navigable

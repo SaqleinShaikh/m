@@ -45,12 +45,12 @@ export async function GET() {
     // Check database status
     const checks = []
 
-    // Check testimonials table
-    const { error: testimonialsError } = await supabaseAdmin
+    // Check endorsements/testimonials table
+    const { error: endorsementsError } = await supabaseAdmin
       .from('testimonials')
       .select('id')
       .limit(1)
-    checks.push({ table: 'testimonials', exists: !testimonialsError })
+    checks.push({ table: 'endorsements', exists: !endorsementsError })
 
     // Check blog_posts table
     const { error: blogsError } = await supabaseAdmin

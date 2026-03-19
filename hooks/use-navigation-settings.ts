@@ -56,7 +56,7 @@ export function useNavigationSettings() {
     // If no settings loaded (database not set up), show all sections except video by default
     if (settings.length === 0) {
       // Default enabled sections (video disabled by default)
-      const defaultEnabled = ['home', 'experience', 'skills', 'projects', 'education', 'certifications', 'blogs', 'testimonials', 'contact']
+      const defaultEnabled = ['home', 'experience', 'skills', 'projects', 'education', 'certifications', 'blogs', 'endorsements', 'contact']
       const enabled = defaultEnabled.includes(sectionKey)
       console.log(`Section "${sectionKey}": ${enabled ? 'ENABLED' : 'DISABLED'} (using defaults, no settings loaded)`)
       return enabled

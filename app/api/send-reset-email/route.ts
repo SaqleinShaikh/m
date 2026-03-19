@@ -17,7 +17,8 @@ export async function POST(request: Request) {
 
     // Create reset token (in production, store this in database with expiry)
     const resetToken = Buffer.from(`${email}-${Date.now()}`).toString('base64')
-    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/loginlocal/reset-password?token=${resetToken}`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+    const resetUrl = `${baseUrl}/loginlocal/reset-password?token=${resetToken}`
 
     // Configure email transporter
     const transporter = nodemailer.createTransport({

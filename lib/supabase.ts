@@ -21,22 +21,22 @@ export const supabaseAdmin = createClient(
 export interface Database {
   public: {
     Tables: {
-      testimonials: {
+      endorsements: {
         Row: {
           id: string
           name: string
           email: string
           designation: string
           organization: string
-          testimonial: string
+          endorsement: string
           image: string
           rating: number
           approved: boolean
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['testimonials']['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Database['public']['Tables']['testimonials']['Insert']>
+        Insert: Omit<Database['public']['Tables']['endorsements']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['endorsements']['Insert']>
       }
       blog_posts: {
         Row: {
@@ -59,7 +59,7 @@ export interface Database {
       email_messages: {
         Row: {
           id: string
-          type: 'contact' | 'testimonial'
+          type: 'contact' | 'endorsement'
           from_name: string
           from_email: string
           subject: string | null

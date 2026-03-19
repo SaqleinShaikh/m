@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 interface EmailMessage {
   id: number
-  type: "contact" | "testimonial"
+  type: "contact" | "endorsement"
   from: string
   email: string
   subject?: string
@@ -36,7 +36,7 @@ export default function AdminEmailsPage() {
     },
     {
       id: 2,
-      type: "testimonial",
+      type: "endorsement",
       from: "Jane Smith",
       email: "jane@company.com",
       message: "Saqlein is an excellent developer...",
@@ -80,7 +80,7 @@ export default function AdminEmailsPage() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold font-serif text-primary">Email Messages</h1>
-              <p className="text-sm text-muted-foreground">View all messages from contact form and testimonials</p>
+              <p className="text-sm text-muted-foreground">View all messages from contact form and endorsements</p>
             </div>
           </div>
         </div>

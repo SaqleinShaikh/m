@@ -11,13 +11,13 @@ if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true })
 }
 
-export interface Testimonial {
+export interface Endorsement {
   id: number
   name: string
   email: string
   designation: string
   organization: string
-  testimonial: string
+  endorsement: string
   image: string
   rating: number
   approved: boolean
@@ -41,7 +41,7 @@ export interface BlogPost {
 
 export interface EmailMessage {
   id: number
-  type: 'contact' | 'testimonial'
+  type: 'contact' | 'endorsement'
   from: string
   email: string
   subject?: string
@@ -74,24 +74,24 @@ export function writeDB<T>(filename: string, data: T[]): void {
 
 // Initialize database files with default data
 export function initializeDB() {
-  // Initialize testimonials
-  const testimonialsFile = path.join(DB_DIR, 'testimonials.json')
-  if (!fs.existsSync(testimonialsFile)) {
-    const defaultTestimonials: Testimonial[] = [
+  // Initialize endorsements
+  const endorsementsFile = path.join(DB_DIR, 'endorsements.json')
+  if (!fs.existsSync(endorsementsFile)) {
+    const defaultEndorsements: Endorsement[] = [
       {
         id: 1,
         name: "Rajesh Kumar",
         email: "rajesh@tcs.com",
         designation: "Senior Project Manager",
         organization: "TCS",
-        testimonial: "Saqlein is an exceptional Mendix developer who consistently delivers high-quality solutions.",
+        endorsement: "Saqlein is an exceptional Mendix developer who consistently delivers high-quality solutions.",
         image: "/placeholder.svg?height=80&width=80&text=RK",
         rating: 5,
         approved: true,
         createdAt: new Date().toISOString()
       }
     ]
-    writeDB('testimonials.json', defaultTestimonials)
+    writeDB('endorsements.json', defaultEndorsements)
   }
 
   // Initialize blogs

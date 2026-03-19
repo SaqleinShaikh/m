@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,21 @@ export default function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [socialLinks, setSocialLinks] = useState({
+    linkedin: "https://www.linkedin.com/in/saqlein-shaikh"
+  })
+
+  // Fetch social links on mount
+  useEffect(() => {
+    fetch('/api/social-links')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.linkedin) {
+          setSocialLinks(prev => ({ ...prev, ...data }))
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,12 +133,12 @@ export default function ContactSection() {
                 <div>
                   <h4 className="font-semibold text-primary">LinkedIn</h4>
                   <a
-                    href="https://www.linkedin.com/in/saqlein-shaikh"
+                    href={socialLinks.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-accent transition-colors"
                   >
-                    linkedin.com/in/saqlein-shaikh
+                    {socialLinks.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
                   </a>
                 </div>
               </div>
@@ -173,7 +188,7 @@ export default function ContactSection() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="name" className="text-sm font-semibold">Full Name *</Label>
                     <Input
                       id="name"
                       name="name"
@@ -182,11 +197,11 @@ export default function ContactSection() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="mt-1"
+                      className="mt-2 h-12 border-accent/20 focus:border-accent"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email Address *</Label>
+                    <Label htmlFor="email" className="text-sm font-semibold">Email Address *</Label>
                     <Input
                       id="email"
                       name="email"
@@ -195,13 +210,13 @@ export default function ContactSection() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="mt-1"
+                      className="mt-2 h-12 border-accent/20 focus:border-accent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="message">Message *</Label>
+                  <Label htmlFor="message" className="text-sm font-semibold">Message *</Label>
                   <Textarea
                     id="message"
                     name="message"
@@ -211,24 +226,28 @@ export default function ContactSection() {
                     required
                     rows={6}
                     maxLength={1000}
-                    className="mt-1 resize-none"
+                    className="mt-2 resize-none border-accent/20 focus:border-accent p-4 text-base leading-relaxed"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{formData.message.length}/1000 characters</p>
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-xs ${formData.message.length >= 950 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
+                      {formData.message.length}/1000
+                    </span>
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isSubmitting || !formData.name || !formData.email || !formData.message}
-                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                  className="w-full h-14 text-lg bg-gradient-to-r from-accent to-primary hover:from-primary hover:to-accent text-accent-foreground transition-all shadow-lg font-medium"
                 >
                   {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-foreground mr-2"></div>
+                    <span className="flex items-center gap-2">
+                      <div className="animate-spin h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full" />
                       Sending...
-                    </>
+                    </span>
                   ) : (
                     <>
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-5 w-5 mr-3" />
                       Send Message
                     </>
                   )}

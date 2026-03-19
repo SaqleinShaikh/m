@@ -24,18 +24,18 @@ const RichTextEditor = dynamic(() => import('@/components/rich-text-editor'), {
 })
 
 interface BlogPost {
-  id: number
+  id: string
   title: string
   slug: string
   excerpt: string
   content: string
   image: string
   author: string
-  date: string
+  published_date: string
   category: string
   visible: boolean
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export default function AdminBlogsPage() {
@@ -52,7 +52,8 @@ export default function AdminBlogsPage() {
     content: "",
     image: "",
     category: "",
-    visible: false
+    visible: false,
+    published_date: new Date().toISOString().split('T')[0]
   })
 
   useEffect(() => {
@@ -86,7 +87,8 @@ export default function AdminBlogsPage() {
         content: blog.content,
         image: blog.image,
         category: blog.category,
-        visible: blog.visible
+        visible: blog.visible,
+        published_date: blog.published_date
       })
     } else {
       setEditingBlog(null)
@@ -96,7 +98,8 @@ export default function AdminBlogsPage() {
         content: "",
         image: "",
         category: "",
-        visible: false
+        visible: false,
+        published_date: new Date().toISOString().split('T')[0]
       })
     }
     setIsDialogOpen(true)
@@ -125,7 +128,7 @@ export default function AdminBlogsPage() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return
 
     try {
@@ -244,7 +247,7 @@ export default function AdminBlogsPage() {
                       <Badge variant="outline" className="text-xs border-accent/30">
                         {blog.category}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">{blog.date}</span>
+                      <span className="text-xs text-muted-foreground">{blog.published_date}</span>
                     </div>
                     <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
                       {blog.title}
@@ -318,15 +321,26 @@ export default function AdminBlogsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="image" className="text-sm font-semibold">Image URL</Label>
+                <Label htmlFor="published_date" className="text-sm font-semibold">Published Date</Label>
                 <Input
-                  id="image"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="/blog-image.png"
+                  id="published_date"
+                  type="date"
+                  value={formData.published_date}
+                  onChange={(e) => setFormData({ ...formData, published_date: e.target.value })}
                   className="mt-2 border-accent/20 focus:border-accent"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image" className="text-sm font-semibold">Image URL</Label>
+              <Input
+                id="image"
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                placeholder="/blog-image.png"
+                className="mt-2 border-accent/20 focus:border-accent"
+              />
             </div>
 
             <div className="space-y-2">

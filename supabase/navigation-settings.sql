@@ -22,7 +22,7 @@ INSERT INTO navigation_settings (section_key, section_name, enabled, display_ord
     ('education', 'Education', true, 5),
     ('certifications', 'Certifications', true, 6),
     ('blogs', 'Blogs', true, 7),
-    ('testimonials', 'Testimonials', true, 8),
+    ('endorsements', 'Endorsements', true, 8),
     ('video', 'Video Resume', true, 9),
     ('contact', 'Contact', true, 10)
 ON CONFLICT (section_key) DO NOTHING;

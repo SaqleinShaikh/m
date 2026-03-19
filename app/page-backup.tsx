@@ -7,7 +7,7 @@ import ExperienceSection from "@/components/experience-section"
 import SkillsSection from "@/components/skills-section"
 import ProjectsSection from "@/components/projects-section"
 import BlogSection from "@/components/blog-section"
-import TestimonialsSection from "@/components/testimonials-section"
+import EndorsementsSection from "@/components/endorsements-section"
 import CertificationsSection from "@/components/certifications-section"
 import VideoResumeSection from "@/components/video-resume-section"
 import ContactSection from "@/components/contact-section"
@@ -116,7 +116,7 @@ export default function HomePage() {
       <ProjectsSection />
       <BlogSection />
       <CertificationsSection />
-      <TestimonialsSection />
+      <EndorsementsSection />
       <VideoResumeSection />
       <ContactSection />
 

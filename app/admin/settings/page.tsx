@@ -15,6 +15,11 @@ export default function AdminSettingsPage() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [currentPassword, setCurrentPassword] = useState("")
+  const [socialLinks, setSocialLinks] = useState({
+    linkedin: "https://www.linkedin.com/in/saqlein-shaikh",
+    github: "https://github.com/saqleinshaikh",
+    twitter: ""
+  })
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
 
@@ -29,8 +34,36 @@ export default function AdminSettingsPage() {
       if (savedEmail) {
         setAdminEmail(savedEmail)
       }
+      fetchSocialLinks()
     }
   }, [router])
+
+  const fetchSocialLinks = async () => {
+    try {
+      const resp = await fetch('/api/social-links')
+      const data = await resp.json()
+      setSocialLinks(prev => ({
+        ...prev,
+        ...data
+      }))
+    } catch(err) {
+      console.error(err)
+    }
+  }
+
+  const handleUpdateSocials = async () => {
+    try {
+      await fetch('/api/social-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(socialLinks)
+      })
+      setSuccess("Social links updated successfully!")
+      setTimeout(() => setSuccess(""), 3000)
+    } catch(err) {
+      setError("Failed to update social links")
+    }
+  }
 
   const handleUpdateEmail = () => {
     if (!adminEmail || !adminEmail.includes("@")) {
@@ -180,6 +213,55 @@ export default function AdminSettingsPage() {
               <Button onClick={handleUpdatePassword}>
                 <Save className="h-4 w-4 mr-2" />
                 Update Password
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Social Links Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Social Media Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="social-linkedin" className="text-sm font-medium">LinkedIn</Label>
+                <Input
+                  id="social-linkedin"
+                  type="text"
+                  value={socialLinks.linkedin}
+                  onChange={(e) => setSocialLinks({ ...socialLinks, linkedin: e.target.value })}
+                  placeholder="https://linkedin.com/in/..."
+                  className="mt-2"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="social-github" className="text-sm font-medium">GitHub</Label>
+                <Input
+                  id="social-github"
+                  type="text"
+                  value={socialLinks.github}
+                  onChange={(e) => setSocialLinks({ ...socialLinks, github: e.target.value })}
+                  placeholder="https://github.com/..."
+                  className="mt-2"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="social-twitter" className="text-sm font-medium">Twitter / X</Label>
+                <Input
+                  id="social-twitter"
+                  type="text"
+                  value={socialLinks.twitter}
+                  onChange={(e) => setSocialLinks({ ...socialLinks, twitter: e.target.value })}
+                  placeholder="https://twitter.com/..."
+                  className="mt-2"
+                />
+              </div>
+              <Button onClick={handleUpdateSocials}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Social Links
               </Button>
             </CardContent>
           </Card>

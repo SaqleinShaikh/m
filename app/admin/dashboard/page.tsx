@@ -46,16 +46,16 @@ export default function AdminDashboard() {
   const dashboardCards = [
     {
       title: "Email Messages",
-      description: "View all emails from contact form and testimonials",
+      description: "View all emails from contact form and endorsements",
       icon: Mail,
       href: "/admin/emails",
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Testimonials",
-      description: "Manage and approve testimonials",
+      title: "Endorsements",
+      description: "Manage and approve endorsements",
       icon: MessageSquare,
-      href: "/admin/testimonials",
+      href: "/admin/endorsements",
       color: "from-purple-500 to-pink-500"
     },
     {
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-primary">5</p>
-                <p className="text-sm text-muted-foreground mt-1">Pending Testimonials</p>
+                <p className="text-sm text-muted-foreground mt-1">Pending Endorsements</p>
               </div>
             </CardContent>
           </Card>

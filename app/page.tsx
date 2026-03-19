@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
 import ThreeBackground from "@/components/three-background"
 import EducationSection from "@/components/education-section"
@@ -7,7 +8,7 @@ import ExperienceSection from "@/components/experience-section"
 import SkillsSection from "@/components/skills-section"
 import ProjectsSection from "@/components/projects-section"
 import BlogSection from "@/components/blog-section"
-import TestimonialsSection from "@/components/testimonials-section"
+import EndorsementsSection from "@/components/endorsements-section"
 import CertificationsSection from "@/components/certifications-section"
 import VideoResumeSection from "@/components/video-resume-section"
 import ContactSection from "@/components/contact-section"
@@ -18,15 +19,31 @@ import { Coffee, ArrowDown, Github, Linkedin, Instagram } from "lucide-react"
 import { XIcon } from "@/components/x-icon"
 import { useNavigationSettings } from "@/hooks/use-navigation-settings"
 
-const socialLinks = [
-  { icon: Linkedin, href: "https://www.linkedin.com/in/saqlein-shaikh", label: "LinkedIn", color: "hover:text-blue-400" },
-  { icon: Github, href: "https://github.com/saqleinshaikh", label: "GitHub", color: "hover:text-purple-400" },
-  { icon: XIcon, href: "#", label: "X (Twitter)", color: "hover:text-cyan-400" },
-  { icon: Instagram, href: "#", label: "Instagram", color: "hover:text-pink-400" },
+const defaultSocialLinks = [
+  { id: 'linkedin', icon: Linkedin, href: "https://www.linkedin.com/in/saqlein-shaikh", label: "LinkedIn", color: "hover:text-blue-400" },
+  { id: 'github', icon: Github, href: "https://github.com/saqleinshaikh", label: "GitHub", color: "hover:text-purple-400" },
+  { id: 'twitter', icon: XIcon, href: "#", label: "X (Twitter)", color: "hover:text-cyan-400" },
+  { id: 'instagram', icon: Instagram, href: "#", label: "Instagram", color: "hover:text-pink-400" },
 ]
 
 export default function HomePage() {
   const { isEnabled, loading } = useNavigationSettings()
+  const [socialLinks, setSocialLinks] = useState(defaultSocialLinks)
+  const [linksLoading, setLinksLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/social-links')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setSocialLinks(prev => prev.map(link => 
+            data[link.id] ? { ...link, href: data[link.id] } : link
+          ))
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLinksLoading(false))
+  }, [])
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -36,7 +53,7 @@ export default function HomePage() {
   }
 
   // Show loading state while navigation settings are being fetched
-  if (loading) {
+  if (loading || linksLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -149,7 +166,7 @@ export default function HomePage() {
       {isEnabled('education') && <EducationSection />}
       {isEnabled('certifications') && <CertificationsSection />}
       {isEnabled('blogs') && <BlogSection />}
-      {isEnabled('testimonials') && <TestimonialsSection />}
+      {isEnabled('endorsements') && <EndorsementsSection />}
       {isEnabled('video') && <VideoResumeSection />}
       {isEnabled('contact') && <ContactSection />}
 
