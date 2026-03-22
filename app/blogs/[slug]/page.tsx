@@ -52,27 +52,30 @@ export default function BlogDetailPage() {
   })
 
   useEffect(() => {
-    fetch('/api/blogs')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const foundPost = data.find((b: Blog) => b.slug === slug)
-          if (foundPost) {
-            setPost(foundPost)
-            setLikesCount(foundPost.likes_count || 0)
-            setRecommended(data.filter((b: Blog) => b.slug !== slug).slice(0, 3))
-            // Fetch comments
-            fetchComments(foundPost.id)
-            // Check if user has liked
-            checkUserLike(foundPost.id)
-          }
+    Promise.all([
+      fetch(`/api/blogs?slug=${slug}`).then(res => res.ok ? res.json() : null),
+      fetch('/api/blogs').then(res => res.ok ? res.json() : [])
+    ])
+    .then(([foundPost, allPosts]) => {
+      if (foundPost && !foundPost.error) {
+        setPost(foundPost)
+        setLikesCount(foundPost.likes_count || 0)
+        
+        // Setup recommended
+        if (Array.isArray(allPosts)) {
+          setRecommended(allPosts.filter((b: Blog) => b.slug !== slug).slice(0, 3))
         }
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Error fetching blog:', err)
-        setLoading(false)
-      })
+        
+        // Fetch comments and check likes
+        fetchComments(foundPost.id)
+        checkUserLike(foundPost.id)
+      }
+      setLoading(false)
+    })
+    .catch(err => {
+      console.error('Error fetching blog:', err)
+      setLoading(false)
+    })
   }, [slug])
 
   const fetchComments = async (blogId: string) => {
@@ -193,8 +196,11 @@ export default function BlogDetailPage() {
 
   if (loading) {
     return (
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <p className="text-center text-muted-foreground">Loading...</p>
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground animate-pulse">Loading article...</p>
+        </div>
       </main>
     )
   }

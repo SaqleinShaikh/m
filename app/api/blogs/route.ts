@@ -1,16 +1,36 @@
 import { NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    return NextResponse.json(data)
+    const { searchParams } = new URL(request.url)
+    const slug = searchParams.get('slug')
+    
+    if (slug) {
+      // Fetch single post with full content
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', slug)
+        .single()
+        
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return NextResponse.json({ error: 'Not found' }, { status: 404 })
+        }
+        throw error
+      }
+      return NextResponse.json(data)
+    } else {
+      // Fetch all posts but exclude heavy content block
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('id, slug, title, excerpt, category, read_time, published_date, image, likes_count, comments_count, created_at, visible, author')
+        .order('created_at', { ascending: false })
+        
+      if (error) throw error
+      return NextResponse.json(data)
+    }
   } catch (error) {
     console.error('Error fetching blogs:', error)
     return NextResponse.json({ error: 'Failed to fetch blogs' }, { status: 500 })

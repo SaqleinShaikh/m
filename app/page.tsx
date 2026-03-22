@@ -30,6 +30,22 @@ export default function HomePage() {
   const { isEnabled, loading } = useNavigationSettings()
   const [socialLinks, setSocialLinks] = useState(defaultSocialLinks)
   const [linksLoading, setLinksLoading] = useState(true)
+  const [showLoader, setShowLoader] = useState(true)
+  const [animatingOut, setAnimatingOut] = useState(false)
+
+  // Trigger smooth transition out when API is done loading
+  useEffect(() => {
+    if (!loading) {
+      // Small requestAnimationFrame delay prevents React batching glitches
+      requestAnimationFrame(() => {
+        setAnimatingOut(true)
+      })
+      const timer = setTimeout(() => {
+        setShowLoader(false)
+      }, 1000) // matches transition duration
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
 
   useEffect(() => {
     fetch('/api/social-links')
@@ -52,20 +68,50 @@ export default function HomePage() {
     }
   }
 
-  // Show loading state while navigation settings are being fetched
-  if (loading || linksLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading website...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* Premium Minimalist Animated Loader Overlay */}
+      {showLoader && (
+        <>
+          {/* Solid background covering everything until loaded */}
+          <div 
+            className={`fixed inset-0 z-[100] bg-background transition-opacity duration-[1000ms] pointer-events-none ease-in-out ${
+              animatingOut ? "opacity-0" : "opacity-100"
+            }`} 
+          />
+          
+          {/* Animated SS Circle Container */}
+          <div 
+            className={`fixed z-[101] pointer-events-none flex items-center justify-center transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              animatingOut 
+                ? "top-8 left-4 sm:left-6 lg:left-8 -translate-x-[0%] -translate-y-[50%] scale-[0.35] opacity-0" 
+                : "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] scale-100 opacity-100"
+            }`}
+            style={{ willChange: "transform, top, left, opacity" }}
+          >
+            {/* Elegant, colorful, and premium spinning rings */}
+            <div className="w-40 h-40 sm:w-48 sm:h-48 relative flex items-center justify-center">
+              {/* Subtle background glow pulsing behind the circle */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 blur-xl animate-pulse"></div>
+              
+              {/* Outer static framing ring */}
+              <div className="absolute inset-2 rounded-full border border-primary/20 bg-background/50 backdrop-blur-md"></div>
+              
+              {/* Fast interior primary color ring */}
+              <div className="absolute inset-[10px] rounded-full border-t-2 border-r-2 border-primary/80 animate-[spin_2.5s_linear_infinite] shadow-[0_0_15px_rgba(var(--primary),0.3)]"></div>
+              
+              {/* Slower reverse accent ring */}
+              <div className="absolute inset-[18px] rounded-full border-b-2 border-l-2 border-accent/80 animate-[spin_3.5s_linear_infinite_reverse] shadow-[0_0_15px_rgba(var(--accent),0.3)]"></div>
+              
+              {/* Center core holding the SS initials */}
+              <div className="absolute inset-[28px] rounded-full bg-background/90 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] dark:shadow-[inset_0_0_20px_rgba(var(--primary),0.2)]">
+                <span className="text-4xl sm:text-5xl font-serif font-bold tracking-[0.1em] bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent pl-2 drop-shadow-sm">SS</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       <ThreeBackground />
       <Navigation />
 

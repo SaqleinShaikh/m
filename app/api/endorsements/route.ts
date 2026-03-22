@@ -304,15 +304,15 @@ export async function POST(request: Request) {
     console.log('Endorsement inserted successfully:', data.id)
     const returnedData = { ...data, endorsement: data.testimonial }
     
-    // Send email notification to admin
-    await sendEndorsementNotification({
+    // Send email notification to admin asynchronously (don't block response)
+    sendEndorsementNotification({
       name: body.name,
       email: body.email,
       endorsement: body.endorsement,
       designation: body.designation,
       organization: body.organization,
       image: body.image,
-    })
+    }).catch(err => console.error('Failed to send notification in background:', err))
     
     // Also save to email_messages for notification
     const { error: emailError } = await supabaseAdmin
@@ -379,7 +379,7 @@ export async function PUT(request: Request) {
     // Send approval notification email if endorsement was just approved
     if (wasApproved && data) {
       sendApprovalNotification(updatedData).catch(err => 
-        console.error('Failed to send approval notification:', err)
+        console.error('Failed to send approval notification in background:', err)
       )
     }
     
