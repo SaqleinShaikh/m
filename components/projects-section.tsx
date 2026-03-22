@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+import { useAutoScroll } from "@/hooks/use-auto-scroll"
 
 interface Project {
   id: string
@@ -70,8 +64,12 @@ export default function ProjectsSection() {
   const scrollByAmount = (dir: number) => {
     const el = scrollRef.current
     if (!el) return
-    el.scrollBy({ left: dir * 280, behavior: 'smooth' })
+    const width = el.children[0]?.clientWidth || 300
+    el.scrollBy({ left: dir * (width + 24), behavior: 'smooth' })
   }
+
+  // Engage auto slideshow logic globally
+  useAutoScroll(scrollRef, 3500, !loading && projectsData.length > 3)
 
   if (loading) {
     return (
@@ -93,45 +91,41 @@ export default function ProjectsSection() {
           </p>
         </div>
 
-        {/* Mobile: Horizontal scrollable with indicators */}
-        <div className="md:hidden relative">
+        {/* Unified Auto-Scrolling Horizontal List */}
+        <div className="relative group">
           {/* Scroll hint indicators */}
           {canScrollLeft && (
             <button
               onClick={() => scrollByAmount(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-4 w-4 text-accent" />
+              <ChevronLeft className="h-5 w-5 text-accent" />
             </button>
           )}
           {canScrollRight && (
             <button
               onClick={() => scrollByAmount(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll right"
             >
-              <ChevronRight className="h-4 w-4 text-accent" />
+              <ChevronRight className="h-5 w-5 text-accent" />
             </button>
           )}
 
           {/* Gradient edge hints */}
-          {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
-          {canScrollRight && (
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
+          {canScrollLeft && <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-[5] pointer-events-none" />}
+          {canScrollRight && <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />}
 
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-1 px-1"
+            className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {projectsData.map((project) => (
-              <div key={project.id} className="flex-shrink-0 w-[280px] snap-start">
+              <div key={project.id} className="flex-shrink-0 snap-start w-[85vw] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)]">
                 <Card
-                  className="h-full group hover:shadow-xl transition-all duration-300 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer flex flex-col"
+                  className="h-full group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer flex flex-col"
                   onClick={() => setSelectedProject(project)}
                 >
                   <CardHeader className="p-0 shrink-0">
@@ -139,31 +133,31 @@ export default function ProjectsSection() {
                       <img
                         src={project.image || "/placeholder.svg"}
                         alt={project.title}
-                        className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg" }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4 flex flex-col flex-1">
-                    <CardTitle className="text-base font-serif gradient-text mb-2 line-clamp-2">{project.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-3 flex-1">{project.short_description}</p>
-                    <div className="flex flex-wrap gap-1 mb-3">
+                  <CardContent className="p-5 flex flex-col flex-1">
+                    <CardTitle className="text-xl font-serif gradient-text mb-2 line-clamp-2">{project.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1 leading-relaxed">{project.short_description}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {project.technologies.slice(0, 3).map((tech, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-gradient-to-r from-primary/20 to-accent/20 border-accent/30">
+                         <Badge key={index} variant="secondary" className="text-xs bg-gradient-to-r from-primary/10 to-accent/10 border-accent/20 font-normal">
                           {tech}
                         </Badge>
                       ))}
                       {project.technologies.length > 3 && (
-                        <Badge variant="outline" className="text-xs border-accent/30">+{project.technologies.length - 3}</Badge>
+                        <Badge variant="outline" className="text-xs border-accent/20 font-normal">+{project.technologies.length - 3}</Badge>
                       )}
                     </div>
-                    <div className="flex justify-end mt-auto">
+                    <div className="flex justify-end mt-auto pt-2 border-t border-border/50">
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelectedProject(project) }}
-                        className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium"
+                        className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors font-medium uppercase tracking-wider"
                       >
-                        <Eye className="h-3 w-3" />
+                        <Eye className="h-3.5 w-3.5" />
                         View Details
                       </button>
                     </div>
@@ -173,77 +167,14 @@ export default function ProjectsSection() {
             ))}
           </div>
 
-          {/* Scroll indicator dots */}
-          <div className="flex justify-center items-center gap-2 mt-3">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
+          {/* Mobile Swipe helper text */}
+          <div className="flex justify-center items-center gap-2 mt-2 md:hidden">
+            <span className="text-xs text-muted-foreground flex items-center gap-1 opacity-70">
               <ChevronLeft className="h-3 w-3" />
-              Swipe to see more
+              Swipe to explore
               <ChevronRight className="h-3 w-3" />
             </span>
           </div>
-        </div>
-
-        {/* Desktop: Carousel */}
-        <div className="hidden md:block relative px-8 lg:px-12">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-4">
-              {projectsData.map((project) => (
-                <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                  <Card
-                    className="h-full group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer flex flex-col"
-                    onClick={() => setSelectedProject(project)}
-                  >
-                    <CardHeader className="p-0 shrink-0">
-                      <div className="relative overflow-hidden rounded-t-lg">
-                        <img
-                          src={project.image || "/placeholder.svg"}
-                          alt={project.title}
-                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg" }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 flex flex-col flex-1">
-                      <CardTitle className="text-lg font-serif gradient-text mb-2 line-clamp-2">{project.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">{project.short_description}</p>
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {project.technologies.slice(0, 3).map((tech, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs bg-gradient-to-r from-primary/20 to-accent/20 border-accent/30">
-                            {tech}
-                          </Badge>
-                        ))}
-                        {project.technologies.length > 3 && (
-                          <Badge variant="outline" className="text-xs border-accent/30">+{project.technologies.length - 3}</Badge>
-                        )}
-                      </div>
-                      <div className="flex justify-end mt-auto">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedProject(project) }}
-                          className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium"
-                        >
-                          <Eye className="h-3 w-3" />
-                          View Details
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {projectsData.length > 0 && (
-              <>
-                <CarouselPrevious className="-left-4 lg:-left-12 bg-background/80 backdrop-blur-sm border-accent/30 hover:bg-accent/10" />
-                <CarouselNext className="-right-4 lg:-right-12 bg-background/80 backdrop-blur-sm border-accent/30 hover:bg-accent/10" />
-              </>
-            )}
-          </Carousel>
         </div>
       </div>
 

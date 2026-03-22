@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAutoScroll } from "@/hooks/use-auto-scroll"
 
 interface Blog {
   id: string
@@ -69,8 +70,12 @@ export default function BlogSection() {
   const scrollByAmount = (dir: number) => {
     const el = scrollRef.current
     if (!el) return
-    el.scrollBy({ left: dir * 280, behavior: 'smooth' })
+    const width = el.children[0]?.clientWidth || 300
+    el.scrollBy({ left: dir * (width + 24), behavior: 'smooth' })
   }
+
+  // Engage auto slideshow logic globally
+  useAutoScroll(scrollRef, 3500, !loading && blogs.length > 3)
 
   if (loading) {
     return (
@@ -84,7 +89,7 @@ export default function BlogSection() {
 
   const BlogCard = ({ blog }: { blog: Blog }) => (
     <Card
-      className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] md:hover:scale-105 bg-card/80 backdrop-blur-sm cursor-pointer h-full flex flex-col"
+      className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer h-full flex flex-col"
       onClick={() => router.push(`/blogs/${blog.slug}`)}
       role="button"
       tabIndex={0}
@@ -156,63 +161,52 @@ export default function BlogSection() {
           </p>
         </div>
 
-        {/* Mobile: Horizontal scrollable */}
-        <div className="md:hidden relative mb-8">
-          {/* Navigation arrows */}
+        {/* Unified Auto-Scrolling Horizontal List */}
+        <div className="relative group mb-8">
+          {/* Scroll hint indicators */}
           {canScrollLeft && (
             <button
               onClick={() => scrollByAmount(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-4 w-4 text-accent" />
+              <ChevronLeft className="h-5 w-5 text-accent" />
             </button>
           )}
           {canScrollRight && (
             <button
               onClick={() => scrollByAmount(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll right"
             >
-              <ChevronRight className="h-4 w-4 text-accent" />
+              <ChevronRight className="h-5 w-5 text-accent" />
             </button>
           )}
 
           {/* Gradient edge hints */}
-          {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
-          {canScrollRight && (
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
+          {canScrollLeft && <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-[5] pointer-events-none" />}
+          {canScrollRight && <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />}
 
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-1 px-1"
+            className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
-            {blogs.slice(0, 4).map((blog) => (
-              <div key={blog.slug} className="flex-shrink-0 w-[280px] snap-start">
+            {blogs.slice(0, 6).map((blog) => (
+              <div key={blog.slug} className="flex-shrink-0 snap-start w-[85vw] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)]">
                 <BlogCard blog={blog} />
               </div>
             ))}
           </div>
 
-          {/* Swipe hint */}
-          <div className="flex justify-center items-center gap-2 mt-3">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
+          {/* Mobile Swipe helper text */}
+          <div className="flex justify-center items-center gap-2 mt-2 md:hidden">
+            <span className="text-xs text-muted-foreground flex items-center gap-1 opacity-70">
               <ChevronLeft className="h-3 w-3" />
-              Swipe to see more
+              Swipe to explore
               <ChevronRight className="h-3 w-3" />
             </span>
           </div>
-        </div>
-
-        {/* Desktop: Grid */}
-        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {blogs.slice(0, 4).map((blog) => (
-            <BlogCard key={blog.slug} blog={blog} />
-          ))}
         </div>
 
         <div className="text-center">

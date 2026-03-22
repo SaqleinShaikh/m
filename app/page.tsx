@@ -42,6 +42,17 @@ export default function HomePage() {
       })
       const timer = setTimeout(() => {
         setShowLoader(false)
+        
+        // Ensure direct hash links jump correctly after dynamic components render
+        if (window.location.hash) {
+          setTimeout(() => {
+            const id = window.location.hash.substring(1)
+            const element = document.getElementById(id)
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+          }, 100)
+        }
       }, 1000) // matches transition duration
       return () => clearTimeout(timer)
     }

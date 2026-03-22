@@ -2,6 +2,71 @@ import { NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import nodemailer from 'nodemailer'
 
+function processEmailImage(image: string | undefined): { attachments: any[], imageSrc: string, hasImage: boolean } {
+  let attachments: any[] = []
+  let imageSrc = ''
+  const hasImage = !!(image && image.length > 20)
+  
+  if (hasImage && image) {
+    if (image.startsWith('data:image')) {
+      const matches = image.match(/^data:(image\/[a-zA-Z0-9]+);base64,/)
+      if (matches) {
+        const base64Data = image.split(',')[1]
+        attachments.push({
+          filename: 'profile.jpg',
+          content: base64Data,
+          encoding: 'base64',
+          cid: 'profilephoto'
+        })
+        imageSrc = 'cid:profilephoto'
+      } else {
+        imageSrc = image
+      }
+    } else {
+      imageSrc = image
+    }
+  }
+  return { attachments, imageSrc, hasImage }
+}
+
+function getEmailEndorsementCard(endorsement: any, imageSrc: string, hasImage: boolean) {
+  const stars = Array(endorsement.rating || 5).fill('⭐').join('');
+  const initial = endorsement.name ? endorsement.name.charAt(0).toUpperCase() : 'S';
+  
+  return `
+    <!-- Mobile-First Responsive Endorsement Card -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:24px;width:100% !important;table-layout:fixed;overflow:hidden;">
+      <tr><td style="padding:20px;">
+        
+        <!-- Header: Image and Info -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;">
+          <tr>
+            <td style="width:60px;min-width:60px;max-width:60px;vertical-align:top;padding-right:15px;padding-bottom:15px;">
+              ${hasImage
+                ? `<img src="${imageSrc}" alt="" width="60" height="60" style="border-radius:50%;object-fit:cover;display:block;border:2px solid #e2e8f0;width:60px;height:60px;max-width:60px;" />`
+                : `<div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);text-align:center;line-height:60px;font-size:24px;font-weight:700;color:#ffffff;display:block;">${initial}</div>`
+              }
+            </td>
+            <td style="vertical-align:top;padding-bottom:15px;">
+              <p style="margin:0 0 4px;font-size:16px;font-weight:bold;color:#1e293b;">${endorsement.name}</p>
+              ${endorsement.designation ? `<p style="margin:0 0 6px;font-size:13px;color:#64748b;line-height:1.4;">${endorsement.designation}${endorsement.organization ? ` &middot; ${endorsement.organization}` : ''}</p>` : ''}
+              <p style="margin:0;font-size:12px;color:#fbbf24;letter-spacing:1px;">${stars}</p>
+            </td>
+          </tr>
+        </table>
+        
+        <!-- Content Body -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e2e8f0;width:100% !important;">
+          <tr><td style="padding-top:15px;">
+            <p style="margin:0;font-size:14px;color:#334155;line-height:1.6;font-style:italic;">"${endorsement.endorsement}"</p>
+          </td></tr>
+        </table>
+        
+      </td></tr>
+    </table>
+  `;
+}
+
 async function sendEndorsementNotification(endorsement: {
   name: string
   email: string
@@ -9,6 +74,7 @@ async function sendEndorsementNotification(endorsement: {
   designation?: string
   organization?: string
   image?: string
+  rating?: number
 }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
@@ -19,31 +85,12 @@ async function sendEndorsementNotification(endorsement: {
     })
 
     const submittedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-    const adminLoginUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/loginlocal`
+    const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+    const adminLoginUrl = `${portfolioUrl}/loginlocal`
     const fromName = 'Saqlein Shaikh | Portfolio'
-    const hasImage = !!(endorsement.image && endorsement.image.length > 100)
-    let attachments: any[] = []
-    let imageSrc = ''
-
-    if (hasImage && endorsement.image) {
-      if (endorsement.image.startsWith('data:image')) {
-        const matches = endorsement.image.match(/^data:(image\/[a-zA-Z0-9]+);base64,/)
-        if (matches) {
-          const base64Data = endorsement.image.split(',')[1]
-          attachments.push({
-            filename: 'profile.jpg',
-            content: base64Data,
-            encoding: 'base64',
-            cid: 'profilephoto'
-          })
-          imageSrc = 'cid:profilephoto'
-        } else {
-          imageSrc = endorsement.image
-        }
-      } else {
-        imageSrc = endorsement.image
-      }
-    }
+    
+    const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
+    const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
     // ── Admin notification ──────────────────────────────────────────────────
     await transporter.sendMail({
@@ -89,33 +136,8 @@ async function sendEndorsementNotification(endorsement: {
             A new endorsement has been submitted and is awaiting your approval.
           </p>
 
-          <!-- Submitter details -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:20px;">
-            <tr><td style="padding:15px;">
-              <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;">Submitted By</p>
-              <table cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  ${hasImage
-                    ? `<td class="photo-cell" style="padding-right:15px;vertical-align:top;width:52px;"><img src="${imageSrc}" alt="" width="52" height="52" style="border-radius:50%;object-fit:cover;display:block;border:2px solid #667eea;" /></td>`
-                    : `<td class="photo-cell" style="padding-right:15px;vertical-align:top;width:52px;"><div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);text-align:center;line-height:52px;font-size:20px;font-weight:700;color:#ffffff;">${endorsement.name.charAt(0).toUpperCase()}</div></td>`
-                  }
-                  <td style="vertical-align:top;">
-                    <p style="margin:0;font-size:16px;font-weight:700;color:#1e293b;">${endorsement.name}</p>
-                    ${endorsement.designation ? `<p style="margin:3px 0 0;font-size:13px;color:#667eea;">${endorsement.designation}${endorsement.organization ? ` &middot; ${endorsement.organization}` : ''}</p>` : ''}
-                    <p style="margin:3px 0 0;font-size:13px;color:#64748b;word-break:break-all;">${endorsement.email}</p>
-                  </td>
-                </tr>
-              </table>
-            </td></tr>
-          </table>
-
-          <!-- Endorsement content -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #667eea;border-radius:0 6px 6px 0;margin-bottom:20px;">
-            <tr><td style="padding:15px;">
-              <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;">Endorsement</p>
-              <p style="margin:0;font-size:14px;color:#334155;line-height:1.6;font-style:italic;">"${endorsement.endorsement}"</p>
-            </td></tr>
-          </table>
+          <!-- Submitter details using fluid card component -->
+          ${cardHtml}
 
           <!-- Meta row -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:20px;">
@@ -161,11 +183,11 @@ async function sendEndorsementNotification(endorsement: {
     })
 
     // ── Confirmation email to submitter ─────────────────────────────────────
-    const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
     await transporter.sendMail({
       from: `"${fromName}" <${process.env.EMAIL_USER}>`,
       to: endorsement.email,
       subject: `We received your endorsement – Saqlein Shaikh`,
+      attachments,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -194,14 +216,9 @@ async function sendEndorsementNotification(endorsement: {
             Once approved, your endorsement will appear on my portfolio website for visitors to see. You will receive an email notification when it goes live!
           </p>
 
-          <!-- Submission summary -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #667eea;border-radius:0 6px 6px 0;margin-bottom:28px;">
-            <tr><td style="padding:20px 24px;">
-              <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;">Your Submission</p>
-              ${endorsement.designation ? `<p style="margin:0 0 6px;font-size:13px;color:#475569;"><strong>Role:</strong> ${endorsement.designation}${endorsement.organization ? ` at ${endorsement.organization}` : ''}</p>` : ''}
-              <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;font-style:italic;">"${endorsement.endorsement}"</p>
-            </td></tr>
-          </table>
+          <!-- Submission summary using identical beautiful layout -->
+          <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;">Your Submission Record</p>
+          ${cardHtml}
 
           <!-- CTA -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
@@ -312,6 +329,7 @@ export async function POST(request: Request) {
       designation: body.designation,
       organization: body.organization,
       image: body.image,
+      rating: 5,
     }).catch(err => console.error('Failed to send notification in background:', err))
     
     // Also save to email_messages for notification
@@ -397,6 +415,7 @@ async function sendApprovalNotification(endorsement: {
   organization?: string
   endorsement: string
   image?: string
+  rating?: number
 }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
@@ -407,16 +426,20 @@ async function sendApprovalNotification(endorsement: {
 
   const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
   const fromName = 'Saqlein Shaikh | Portfolio'
+  
+  const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
+  const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
   await transporter.sendMail({
     from: `"${fromName}" <${process.env.EMAIL_USER}>`,
     to: endorsement.email,
     subject: `Your endorsement is now live! – Saqlein Shaikh`,
+    attachments,
     html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:20px;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#333333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;width:100%;table-layout:fixed;">
     <tr><td>
 
       <!-- Header -->
@@ -437,28 +460,21 @@ async function sendApprovalNotification(endorsement: {
             Hi ${endorsement.name},
           </p>
           <p style="margin:0 0 16px;font-size:15px;color:#555555;line-height:1.7;">
-            Great news! Your endorsement has been reviewed and approved. It is now live on my portfolio website for everyone to see.
+            Great news! Your endorsement has been reviewed and approved. It is now live on my portfolio website.
           </p>
           <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.7;">
-            Thank you so much for taking the time to share your experience. Your support truly means a lot!
+            Thank you so much for taking the time to share your experience. Below is the final look of your endorsement on the site.
           </p>
 
-          <!-- Endorsement summary -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #10b981;border-radius:0 6px 6px 0;margin-bottom:28px;">
-            <tr><td style="padding:20px 24px;">
-              <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;">Your Full Details Submitted</p>
-              <p style="margin:0 0 6px;font-size:13px;color:#475569;"><strong>Name:</strong> ${endorsement.name}</p>
-              ${endorsement.designation ? `<p style="margin:0 0 6px;font-size:13px;color:#475569;"><strong>Role:</strong> ${endorsement.designation}</p>` : ''}
-              ${endorsement.organization ? `<p style="margin:0 0 10px;font-size:13px;color:#475569;"><strong>Organization:</strong> ${endorsement.organization}</p>` : ''}
-              <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;font-style:italic;">"${endorsement.endorsement}"</p>
-            </td></tr>
-          </table>
+          <!-- Fully Designed Submitter Card -->
+          <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;">Your Live Endorsement</p>
+          ${cardHtml}
 
-          <!-- CTA -->
+          <!-- CTA to View on Site directly scrolled to the section -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
             <tr><td style="text-align:center;">
               <a href="${portfolioUrl}/#endorsements" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:6px;font-size:14px;font-weight:600;">
-                View Your Endorsement
+                View Your Endorsement Live
               </a>
             </td></tr>
           </table>

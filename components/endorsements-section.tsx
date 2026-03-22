@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Star, Plus, Search, Filter, Building, Mail, ChevronLeft, ChevronRight } from "lucide-react"
+import { useAutoScroll } from "@/hooks/use-auto-scroll"
 
 interface Endorsement {
   id: string
@@ -37,7 +38,7 @@ function EndorsementCard({ endorsement }: { endorsement: Endorsement }) {
   )
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/95 backdrop-blur-sm border-accent/20 overflow-hidden relative flex flex-col h-full">
+    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 overflow-hidden relative flex flex-col h-full cursor-pointer">
       {/* Decorative top border */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent opacity-70"></div>
       
@@ -182,7 +183,8 @@ export default function EndorsementsSection() {
   const scrollByAmount = (dir: number) => {
     const el = scrollRef.current
     if (!el) return
-    el.scrollBy({ left: dir * 300, behavior: 'smooth' })
+    const width = el.children[0]?.clientWidth || 300
+    el.scrollBy({ left: dir * (width + 24), behavior: 'smooth' })
   }
 
   const organizations = ["All", ...Array.from(new Set(endorsements.map((t) => t.organization)))]
@@ -198,6 +200,9 @@ export default function EndorsementsSection() {
   })
 
   const displayedEndorsements = showAllEndorsements ? filteredEndorsements : approvedEndorsements.slice(0, 6)
+
+  // Engage auto slideshow logic globally
+  useAutoScroll(scrollRef, 3500, !loading && !showAllEndorsements && displayedEndorsements.length > 3)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -516,63 +521,52 @@ export default function EndorsementsSection() {
           </Dialog>
         </div>
 
-        {/* Mobile: Horizontal scrollable endorsements */}
-        <div className="md:hidden relative mb-8">
-          {/* Navigation arrows */}
+        {/* Unified Auto-Scrolling Horizontal List */}
+        <div className="relative group mb-8">
+          {/* Scroll hint indicators */}
           {canScrollLeft && (
             <button
               onClick={() => scrollByAmount(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-4 w-4 text-accent" />
+              <ChevronLeft className="h-5 w-5 text-accent" />
             </button>
           )}
           {canScrollRight && (
             <button
               onClick={() => scrollByAmount(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100"
               aria-label="Scroll right"
             >
-              <ChevronRight className="h-4 w-4 text-accent" />
+              <ChevronRight className="h-5 w-5 text-accent" />
             </button>
           )}
 
           {/* Gradient edge hints */}
-          {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
-          {canScrollRight && (
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/80 to-transparent z-[5] pointer-events-none" />
-          )}
+          {canScrollLeft && <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-[5] pointer-events-none" />}
+          {canScrollRight && <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />}
 
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-1 px-1"
+            className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {displayedEndorsements.map((endorsement) => (
-              <div key={endorsement.id} className="flex-shrink-0 w-[300px] snap-start">
+              <div key={endorsement.id} className="flex-shrink-0 snap-start w-[85vw] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)]">
                 <EndorsementCard endorsement={endorsement} />
               </div>
             ))}
           </div>
 
-          {/* Swipe hint */}
-          <div className="flex justify-center items-center gap-2 mt-3">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
+          {/* Mobile Swipe helper text */}
+          <div className="flex justify-center items-center gap-2 mt-2 md:hidden">
+            <span className="text-xs text-muted-foreground flex items-center gap-1 opacity-70">
               <ChevronLeft className="h-3 w-3" />
-              Swipe to see more
+              Swipe to explore
               <ChevronRight className="h-3 w-3" />
             </span>
           </div>
-        </div>
-
-        {/* Desktop: Grid */}
-        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
-          {displayedEndorsements.map((endorsement) => (
-            <EndorsementCard key={endorsement.id} endorsement={endorsement} />
-          ))}
         </div>
 
         {/* Show All Endorsements Button */}
