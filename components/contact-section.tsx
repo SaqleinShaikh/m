@@ -79,19 +79,19 @@ export default function ContactSection() {
   }
 
   return (
-    <section id="contact" className="py-20 bg-muted/30">
+    <section id="contact" className="py-12 sm:py-20 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold font-serif text-primary mb-4">Contact Me</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif text-primary mb-3 sm:mb-4">Contact Me</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Let's connect and discuss opportunities, collaborations, or just have a conversation about technology
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           <div className="space-y-8">
             <div>
-              <h3 className="text-2xl font-bold font-serif text-primary mb-6">Get In Touch</h3>
+              <h3 className="text-xl sm:text-2xl font-bold font-serif text-primary mb-4 sm:mb-6">Get In Touch</h3>
               <p className="text-muted-foreground leading-relaxed mb-8">
                 I'm always open to discussing new opportunities, interesting projects, or just connecting with fellow
                 developers. Feel free to reach out through any of the channels below.
@@ -166,8 +166,8 @@ export default function ContactSection() {
           </div>
 
           <Card className="bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <h3 className="text-xl font-bold font-serif text-primary mb-6">Send Me a Message</h3>
+            <CardContent className="p-4 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold font-serif text-primary mb-4 sm:mb-6">Send Me a Message</h3>
 
               {isSubmitted && (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">

@@ -77,16 +77,16 @@ export default function ImpactMetricsSection() {
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold font-serif bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 sm:mb-4">
             Impact & Metrics
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Delivering measurable results and driving digital transformation
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
           {metrics.map((metric, index) => (
             <Card
               key={index}
@@ -95,14 +95,14 @@ export default function ImpactMetricsSection() {
               }`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <CardContent className="p-6 text-center">
-                <div className={`bg-gradient-to-br ${metric.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <metric.icon className="h-8 w-8 text-white" />
+              <CardContent className="p-3 sm:p-6 text-center">
+                <div className={`bg-gradient-to-br ${metric.color} w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <metric.icon className="h-5 w-5 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-primary mb-2 group-hover:text-accent transition-colors">
+                <h3 className="text-xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2 group-hover:text-accent transition-colors">
                   {metric.value}
                 </h3>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                   {metric.label}
                 </p>
               </CardContent>

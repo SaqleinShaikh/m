@@ -65,36 +65,36 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <ThreeBackground />
       <Navigation />
 
       {/* Hero Section - Always visible */}
       {isEnabled('home') && (
-        <section id="home" className="min-h-screen flex items-center justify-center pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <section id="home" className="min-h-screen flex items-center justify-center pt-16 sm:pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Side - Text Content */}
-            <div className="space-y-6 animate-slide-in-left">
-              <div className="space-y-4">
-                <h1 className="text-5xl lg:text-7xl font-bold font-serif gradient-text leading-tight">
+            <div className="space-y-4 sm:space-y-6 animate-slide-in-left text-center lg:text-left">
+              <div className="space-y-3 sm:space-y-4">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold font-serif gradient-text leading-tight">
                   Saqlein Shaikh
                 </h1>
-                <h2 className="text-2xl lg:text-3xl text-accent font-semibold">Mendix Developer</h2>
-                <p className="text-lg text-muted-foreground">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl text-accent font-semibold">Mendix Developer</h2>
+                <p className="text-base sm:text-lg text-muted-foreground">
                   Currently at <span className="text-secondary font-semibold">Deloitte</span>
                 </p>
               </div>
 
-              <p className="text-lg text-foreground leading-relaxed max-w-lg">
+              <p className="text-base sm:text-lg text-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
                 Passionate about creating innovative digital solutions with Mendix platform. Experienced in building
                 scalable applications that drive business transformation and deliver exceptional user experiences.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
-                  className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-secondary transition-all duration-300 animate-glow"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-3 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-secondary transition-all duration-300 animate-glow"
                   onClick={() => scrollToSection("projects")}
                 >
                   View My Work
@@ -102,14 +102,14 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-3 bg-transparent border-accent hover:bg-accent/10 transition-all duration-300"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-3 bg-transparent border-accent hover:bg-accent/10 transition-all duration-300"
                   onClick={() => scrollToSection("contact")}
                 >
                   Get In Touch
                 </Button>
               </div>
 
-              <div className="flex items-center space-x-6 pt-4">
+              <div className="flex items-center justify-center lg:justify-start space-x-6 pt-2 sm:pt-4">
                 <span className="text-muted-foreground text-sm">Follow me:</span>
                 {socialLinks.map((social) => (
                   <a
@@ -120,7 +120,7 @@ export default function HomePage() {
                     className={`text-muted-foreground ${social.color} transition-all duration-300 transform hover:scale-110`}
                     aria-label={social.label}
                   >
-                    <social.icon className="h-6 w-6" />
+                    <social.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </a>
                 ))}
               </div>
@@ -128,21 +128,21 @@ export default function HomePage() {
 
             {/* Right Side - Photo */}
             {isEnabled('profile_photo') && (
-              <div className="flex justify-center lg:justify-end animate-slide-in-right">
+              <div className="flex justify-center lg:justify-end animate-slide-in-right order-first lg:order-last">
                 <div className="relative">
-                  <Card className="p-8 bg-card/50 backdrop-blur-sm border-2 border-accent/20 animate-float">
+                  <Card className="p-4 sm:p-8 bg-card/50 backdrop-blur-sm border-2 border-accent/20 animate-float">
                     <div className="relative">
                       <img
                         src="/header-light.png"
                         alt="Saqlein Shaikh holding a coffee cup"
-                        className="w-80 h-96 object-cover rounded-lg shadow-2xl"
+                        className="w-56 h-72 sm:w-80 sm:h-96 object-cover rounded-lg shadow-2xl"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/placeholder-user.jpg";
                         }}
                       />
-                      <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-accent to-secondary text-accent-foreground p-3 rounded-full shadow-lg animate-bounce">
-                        <Coffee className="h-6 w-6" />
+                      <div className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 bg-gradient-to-r from-accent to-secondary text-accent-foreground p-2.5 sm:p-3 rounded-full shadow-lg animate-bounce">
+                        <Coffee className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                     </div>
                   </Card>
@@ -152,7 +152,7 @@ export default function HomePage() {
           </div>
 
           {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
             <ArrowDown className="h-6 w-6 text-accent" />
           </div>
         </div>

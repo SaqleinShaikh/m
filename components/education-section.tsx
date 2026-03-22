@@ -46,16 +46,16 @@ export default function EducationSection() {
   }
 
   return (
-    <section id="education" className="py-16 bg-muted/20">
+    <section id="education" className="py-12 sm:py-16 bg-muted/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl lg:text-5xl font-bold font-serif gradient-text mb-4">Education</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif gradient-text mb-3 sm:mb-4">Education</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             My academic journey that laid the foundation for my career in technology
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {education.map((edu) => {
             const Icon = getIcon(edu.icon)
             return (

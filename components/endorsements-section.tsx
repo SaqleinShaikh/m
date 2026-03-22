@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Star, Plus, Search, Filter, Building, Mail } from "lucide-react"
+import { Star, Plus, Search, Filter, Building, Mail, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface Endorsement {
   id: string
@@ -25,52 +25,68 @@ interface Endorsement {
 function EndorsementCard({ endorsement }: { endorsement: Endorsement }) {
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star key={i} className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+      <Star key={i} className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
     ))
   }
+
+  // Check if the image is a valid URL or base64
+  const hasValidImage = endorsement.image && (
+    endorsement.image.startsWith('http') || 
+    endorsement.image.startsWith('data:image') ||
+    endorsement.image.length > 50
+  )
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/95 backdrop-blur-sm border-accent/20 overflow-hidden relative flex flex-col h-full">
       {/* Decorative top border */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent opacity-70"></div>
       
-      <CardContent className="p-6 flex flex-col flex-1">
+      <CardContent className="p-4 sm:p-6 flex flex-col flex-1">
         {/* Header: Photo + Info + Date */}
-        <div className="flex items-start justify-between gap-2 mb-5">
-          <div className="flex items-center gap-4">
-            {/* Avatar with fallback */}
+        <div className="flex items-start justify-between gap-2 mb-4 sm:mb-5">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            {/* Avatar with proper fallback */}
             <div className="relative flex-shrink-0">
-              {endorsement.image && endorsement.image.length > 20 ? (
-                <img
-                  src={endorsement.image}
-                  alt={endorsement.name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-accent/20 shadow-sm bg-muted flex items-center justify-center text-xs"
-                  onError={(e) => {
-                    // Fallback if image fails to load
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
-                    target.nextElementSibling?.classList.add('flex');
-                  }}
-                />
-              ) : null}
-              <div 
-                className={`w-14 h-14 rounded-full border-2 border-accent/20 shadow-sm bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground items-center justify-center text-xl font-bold ${(!endorsement.image || endorsement.image.length <= 20) ? 'flex' : 'hidden'}`}
-              >
-                {endorsement.name.charAt(0).toUpperCase()}
-              </div>
+              {hasValidImage ? (
+                <>
+                  <img
+                    src={endorsement.image}
+                    alt={endorsement.name}
+                    className="w-11 h-11 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-accent/20 shadow-sm bg-muted"
+                    onError={(e) => {
+                      // Hide image and show fallback
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) {
+                        fallback.style.display = 'flex';
+                      }
+                    }}
+                  />
+                  <div 
+                    className="w-11 h-11 sm:w-14 sm:h-14 rounded-full border-2 border-accent/20 shadow-sm bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground items-center justify-center text-lg sm:text-xl font-bold"
+                    style={{ display: 'none' }}
+                  >
+                    {endorsement.name.charAt(0).toUpperCase()}
+                  </div>
+                </>
+              ) : (
+                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full border-2 border-accent/20 shadow-sm bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground flex items-center justify-center text-lg sm:text-xl font-bold">
+                  {endorsement.name.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
             
             {/* Name and Title */}
-            <div>
-              <h3 className="font-bold text-foreground text-lg leading-tight">{endorsement.name}</h3>
+            <div className="min-w-0">
+              <h3 className="font-bold text-foreground text-base sm:text-lg leading-tight truncate">{endorsement.name}</h3>
               {endorsement.designation && (
-                <p className="text-sm text-primary font-medium mt-0.5">{endorsement.designation}</p>
+                <p className="text-xs sm:text-sm text-primary font-medium mt-0.5 truncate">{endorsement.designation}</p>
               )}
               {endorsement.organization && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Building className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">{endorsement.organization}</span>
+                  <Building className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground flex-shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate">{endorsement.organization}</span>
                 </div>
               )}
             </div>
@@ -78,23 +94,23 @@ function EndorsementCard({ endorsement }: { endorsement: Endorsement }) {
 
           {/* Date (Right aligned) */}
           {endorsement.created_at && (
-            <div className="text-xs text-muted-foreground whitespace-nowrap pt-1">
+            <div className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap pt-1 flex-shrink-0">
               {new Date(endorsement.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </div>
           )}
         </div>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-4">
+        <div className="flex items-center gap-0.5 sm:gap-1 mb-3 sm:mb-4">
           {renderStars(endorsement.rating || 5)}
         </div>
 
         {/* Quote content */}
         <div className="relative flex-1">
-          <svg className="absolute -top-2 -left-2 w-6 h-6 text-accent/20 transform -translate-x-1 -translate-y-1" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+          <svg className="absolute -top-2 -left-2 w-5 h-5 sm:w-6 sm:h-6 text-accent/20 transform -translate-x-1 -translate-y-1" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
             <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
           </svg>
-          <p className="text-sm text-foreground/90 leading-relaxed italic relative z-10 pl-6">
+          <p className="text-sm text-foreground/90 leading-relaxed italic relative z-10 pl-5 sm:pl-6">
             "{endorsement.endorsement}"
           </p>
         </div>
@@ -115,6 +131,9 @@ export default function EndorsementsSection() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
   const [imageConsent, setImageConsent] = useState(false)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [newEndorsement, setNewEndorsement] = useState({
     name: "",
     email: "",
@@ -139,6 +158,31 @@ export default function EndorsementsSection() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const checkScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 10)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    checkScroll()
+    el.addEventListener('scroll', checkScroll, { passive: true })
+    window.addEventListener('resize', checkScroll)
+    return () => {
+      el.removeEventListener('scroll', checkScroll)
+      window.removeEventListener('resize', checkScroll)
+    }
+  }, [endorsements, showAllEndorsements])
+
+  const scrollByAmount = (dir: number) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 300, behavior: 'smooth' })
   }
 
   const organizations = ["All", ...Array.from(new Set(endorsements.map((t) => t.organization)))]
@@ -214,8 +258,6 @@ export default function EndorsementsSection() {
     }
   }
 
-  // Stars logic moved to EndorsementCard 
-
   if (loading) {
     return (
       <section id="endorsements" className="py-20 bg-muted/30">
@@ -228,20 +270,20 @@ export default function EndorsementsSection() {
 
   if (showAllEndorsements) {
     return (
-      <section id="endorsements" className="py-20 bg-muted/30">
+      <section id="endorsements" className="py-12 sm:py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold font-serif text-primary mb-4">All Endorsements</h2>
-              <p className="text-lg text-muted-foreground">What colleagues and clients say about my work</p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif text-primary mb-2 sm:mb-4">All Endorsements</h2>
+              <p className="text-base sm:text-lg text-muted-foreground">What colleagues and clients say about my work</p>
             </div>
-            <Button onClick={() => setShowAllEndorsements(false)} variant="outline">
+            <Button onClick={() => setShowAllEndorsements(false)} variant="outline" className="self-start sm:self-auto">
               Back to Main
             </Button>
           </div>
 
           {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -252,11 +294,11 @@ export default function EndorsementsSection() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <select
                 value={selectedOrganization}
                 onChange={(e) => setSelectedOrganization(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md bg-background"
+                className="px-3 py-2 border border-border rounded-md bg-background text-sm w-full sm:w-auto"
               >
                 {organizations.map((org) => (
                   <option key={org} value={org}>
@@ -267,7 +309,7 @@ export default function EndorsementsSection() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredEndorsements.map((endorsement) => (
               <EndorsementCard key={endorsement.id} endorsement={endorsement} />
             ))}
@@ -278,17 +320,17 @@ export default function EndorsementsSection() {
   }
 
   return (
-    <section id="endorsements" className="py-20 bg-muted/30">
+    <section id="endorsements" className="py-12 sm:py-20 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold font-serif text-primary mb-4">Endorsements</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif text-primary mb-3 sm:mb-4">Endorsements</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             What colleagues and clients say about my work and professional approach
           </p>
         </div>
 
         {/* Add Endorsement Button */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-8 sm:mb-12">
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
               <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -298,9 +340,9 @@ export default function EndorsementsSection() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto px-4 sm:px-6">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-serif text-primary sm:text-3xl mt-4 sm:mt-0">Add Your Endorsement</DialogTitle>
+                <DialogTitle className="text-xl sm:text-2xl font-serif text-primary mt-4 sm:mt-0">Add Your Endorsement</DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 pb-6">
+              <div className="space-y-5 sm:space-y-6 pb-6">
 
                 {/* Success state */}
                 {submitSuccess ? (
@@ -372,17 +414,17 @@ export default function EndorsementsSection() {
 
                 <div className="space-y-3">
                   <Label htmlFor="endorsement-image" className="text-sm font-semibold">Profile Image (JPG/JPEG only)</Label>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     <Input
                       id="endorsement-image"
                       type="file"
                       accept=".jpg,.jpeg"
                       onChange={handleImageChange}
-                      className="mt-2 text-sm border-accent/20 file:border-0 file:bg-accent/10 file:text-accent file:px-4 file:py-1 file:-mr-4 file:rounded-md cursor-pointer h-12"
+                      className="mt-2 text-sm border-accent/20 file:border-0 file:bg-accent/10 file:text-accent file:px-3 sm:file:px-4 file:py-1 file:-mr-4 file:rounded-md cursor-pointer h-12"
                     />
                     {imagePreview && (
                       <div className="flex-shrink-0">
-                        <img src={imagePreview} alt="Preview" className="w-14 h-14 rounded-full object-cover border-2 border-accent" />
+                        <img src={imagePreview} alt="Preview" className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-accent" />
                       </div>
                     )}
                   </div>
@@ -413,13 +455,13 @@ export default function EndorsementsSection() {
                   <div className="space-y-2 animate-fade-in">
                     <div className="relative">
                       <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-lg blur-sm"></div>
-                      <div className="relative flex items-start gap-3 p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-lg shadow-md">
+                      <div className="relative flex items-start gap-3 p-4 sm:p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-lg shadow-md">
                         <input
                           type="checkbox"
                           id="image-consent"
                           checked={imageConsent}
                           onChange={(e) => setImageConsent(e.target.checked)}
-                          className="mt-1 h-5 w-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 cursor-pointer"
+                          className="mt-1 h-5 w-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 cursor-pointer flex-shrink-0"
                         />
                         <div className="flex-1">
                           <Label htmlFor="image-consent" className="text-sm font-medium cursor-pointer text-amber-900 dark:text-amber-100 leading-relaxed">
@@ -434,9 +476,9 @@ export default function EndorsementsSection() {
                   </div>
                 )}
 
-                <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="bg-muted/50 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <Mail className="h-4 w-4 text-accent mt-0.5" />
+                    <Mail className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-muted-foreground">
                       <p className="font-medium">Note:</p>
                       <p>
@@ -474,7 +516,60 @@ export default function EndorsementsSection() {
           </Dialog>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
+        {/* Mobile: Horizontal scrollable endorsements */}
+        <div className="md:hidden relative mb-8">
+          {/* Navigation arrows */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scrollByAmount(-1)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-4 w-4 text-accent" />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              onClick={() => scrollByAmount(1)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/10 transition-all"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-4 w-4 text-accent" />
+            </button>
+          )}
+
+          {/* Gradient edge hints */}
+          {canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background/80 to-transparent z-[5] pointer-events-none" />
+          )}
+          {canScrollRight && (
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/80 to-transparent z-[5] pointer-events-none" />
+          )}
+
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-1 px-1"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {displayedEndorsements.map((endorsement) => (
+              <div key={endorsement.id} className="flex-shrink-0 w-[300px] snap-start">
+                <EndorsementCard endorsement={endorsement} />
+              </div>
+            ))}
+          </div>
+
+          {/* Swipe hint */}
+          <div className="flex justify-center items-center gap-2 mt-3">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <ChevronLeft className="h-3 w-3" />
+              Swipe to see more
+              <ChevronRight className="h-3 w-3" />
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
           {displayedEndorsements.map((endorsement) => (
             <EndorsementCard key={endorsement.id} endorsement={endorsement} />
           ))}

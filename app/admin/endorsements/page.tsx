@@ -70,7 +70,7 @@ export default function AdminEndorsementsPage() {
       })
 
       if (response.ok) {
-        setEndorsements(endorsements.map(t => 
+        setEndorsements(endorsements.map(t =>
           t.id === id ? { ...t, approved: true } : t
         ))
       }
@@ -113,7 +113,7 @@ export default function AdminEndorsementsPage() {
 
   const handleEditDate = async () => {
     if (!editingEndorsement || !editDate) return;
-    
+
     try {
       const response = await fetch('/api/endorsements', {
         method: 'PUT',
@@ -122,7 +122,7 @@ export default function AdminEndorsementsPage() {
       })
 
       if (response.ok) {
-        setEndorsements(endorsements.map(t => 
+        setEndorsements(endorsements.map(t =>
           t.id === editingEndorsement.id ? { ...t, created_at: editDate } : t
         ))
         setEditingEndorsement(null)
@@ -334,11 +334,11 @@ export default function AdminEndorsementsPage() {
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="edit-date">Submission Date</Label>
-              <Input 
-                id="edit-date" 
-                type="date" 
-                value={editDate} 
-                onChange={(e) => setEditDate(e.target.value)} 
+              <Input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
               />
             </div>
           </div>
