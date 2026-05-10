@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Code, Wrench, Database, Laptop, Cpu, Settings } from "lucide-react"
+import { Code, Wrench, Database, Laptop, Cpu } from "lucide-react"
 
 interface Skill {
   id: string
@@ -14,26 +11,80 @@ interface Skill {
   subcategory: string
 }
 
-function SkillIcon({ label, className }: { label: string; className?: string }) {
-  const l = label.toLowerCase()
-  if (l.includes("react")) return <Cpu className={className} aria-hidden="true" />
-  if (l.includes("postgres")) return <Database className={className} aria-hidden="true" />
-  if (l.includes("db") || l.includes("dbeaver") || l.includes("pgadmin"))
-    return <Database className={className} aria-hidden="true" />
-  if (l.includes("mendix")) return <Wrench className={className} aria-hidden="true" />
-  if (
-    l.includes("html") ||
-    l.includes("css") ||
-    l.includes("java") ||
-    l.includes("python") ||
-    l.includes("c++") ||
-    l.includes("sql")
-  )
-    return <Code className={className} aria-hidden="true" />
-  if (l.includes("putty")) return <Settings className={className} aria-hidden="true" />
-  return <Code className={className} aria-hidden="true" />
+/* ── Proficiency config ─────────────────────────────────────────── */
+function getProfConfig(p: number) {
+  if (p >= 90) return { label: "Expert",       color: "#10b981", shadow: "0 0 16px rgba(16,185,129,0.35)"  }
+  if (p >= 75) return { label: "Advanced",     color: "#3b82f6", shadow: "0 0 16px rgba(59,130,246,0.35)"  }
+  if (p >= 55) return { label: "Intermediate", color: "#8b5cf6", shadow: "0 0 16px rgba(139,92,246,0.35)" }
+  return            { label: "Beginner",       color: "#f59e0b", shadow: "0 0 16px rgba(245,158,11,0.35)"  }
 }
 
+/* ── SVG Ring Progress ──────────────────────────────────────────── */
+function RingProgress({ value, color }: { value: number; color: string }) {
+  const size = 56, sw = 4, r = (size - sw) / 2
+  const circ = 2 * Math.PI * r
+  const dash  = (value / 100) * circ
+  return (
+    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute -rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={sw} />
+        <circle
+          cx={size/2} cy={size/2} r={r}
+          fill="none" stroke={color} strokeWidth={sw}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}
+        />
+      </svg>
+      <span className="text-[11px] font-extrabold" style={{ color }}>{value}%</span>
+    </div>
+  )
+}
+
+/* ── Skill Card (Technology) ───────────────────────────────────── */
+function SkillCard({ skill }: { skill: Skill }) {
+  const prof = getProfConfig(skill.proficiency)
+  return (
+    <div
+      className="group relative flex items-center gap-3.5 p-3.5 rounded-2xl border bg-card/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-default"
+      style={{ borderColor: prof.color + "30" }}
+      onMouseEnter={e => (e.currentTarget.style.boxShadow = prof.shadow)}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+    >
+      {/* Glow background on hover */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+        style={{ background: `radial-gradient(ellipse at 10% 50%, ${prof.color}14 0%, transparent 70%)` }}
+      />
+      {/* Left accent strip */}
+      <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full" style={{ background: prof.color }} />
+
+      <RingProgress value={skill.proficiency} color={prof.color} />
+
+      <div className="min-w-0 flex-1">
+        <p className="font-bold text-sm text-foreground leading-tight truncate">{skill.name}</p>
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded-md" style={{ background: prof.color + "20", color: prof.color }}>
+            {prof.label}
+          </span>
+          <span className="text-[10px] text-muted-foreground truncate">{skill.subcategory}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+
+/* ── Legend ────────────────────────────────────────────────────── */
+const LEGEND = [
+  { label: "Expert",       color: "#10b981" },
+  { label: "Advanced",     color: "#3b82f6" },
+  { label: "Intermediate", color: "#8b5cf6" },
+  { label: "Beginner",     color: "#f59e0b" },
+]
+
+/* ── Main Section ──────────────────────────────────────────────── */
 export default function SkillsSection() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,21 +92,14 @@ export default function SkillsSection() {
   useEffect(() => {
     fetch('/api/skills')
       .then(res => res.json())
-      .then(data => {
-        setSkills(Array.isArray(data) ? data : [])
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Error fetching skills:', err)
-        setSkills([])
-        setLoading(false)
-      })
+      .then(data => { setSkills(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => { setSkills([]); setLoading(false) })
   }, [])
 
   if (loading) {
     return (
-      <section id="skills" className="py-20 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section id="skills" className="py-16 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-muted-foreground">Loading skills...</p>
         </div>
       </section>
@@ -63,128 +107,89 @@ export default function SkillsSection() {
   }
 
   const languages = skills.filter(s => s.category === 'language')
-  const tools = skills.filter(s => s.category === 'tool')
+  const tools     = skills.filter(s => s.category === 'tool')
 
   return (
-    <section id="skills" className="py-12 sm:py-20 bg-muted/30">
+    <section id="skills" className="py-12 sm:py-16 bg-muted/30 overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif text-primary mb-3 sm:mb-4 text-balance">Skills</h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
+
+        {/* ── Header ── */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif gradient-text mb-3">Skills</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
             Technical expertise across technologies and development tools
           </p>
         </div>
 
-        <div className="space-y-10 sm:space-y-12">
-          {/* Technology */}
-          <div>
-            <h3 className="text-xl sm:text-2xl font-semibold font-serif text-primary mb-4">Technology</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-              {languages.map((skill) => (
-                <Card
-                  key={skill.id}
-                  className="bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 overflow-hidden"
-                >
-                  <CardHeader className="pb-0 p-3 sm:p-4 md:p-6 md:pb-0">
-                    {/* Mobile: stacked layout. Desktop: side-by-side */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div className="bg-accent/10 p-1.5 sm:p-2 rounded-full flex-shrink-0">
-                          <SkillIcon label={skill.name} className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                        </div>
-                        <CardTitle className="text-sm sm:text-base font-semibold text-foreground truncate">{skill.name}</CardTitle>
-                      </div>
-                      <Badge variant="secondary" className="text-[10px] sm:text-xs w-fit flex-shrink-0">
-                        {skill.subcategory}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-3 sm:pt-4 p-3 sm:p-4 md:p-6 md:pt-4">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <span className="text-xs sm:text-sm text-muted-foreground">Proficiency</span>
-                      <span className="text-xs sm:text-sm font-medium">{skill.proficiency}%</span>
-                    </div>
-                    <Progress
-                      value={skill.proficiency}
-                      className="h-1.5 sm:h-2"
-                      aria-label={`${skill.name} proficiency ${skill.proficiency} percent`}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
+        {/* ── Technology Section ── */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30">
+              <Code className="h-4 w-4 text-blue-400" />
             </div>
+            <h3 className="text-lg font-bold text-foreground">Technology</h3>
+            <div className="flex-1 h-px bg-border/50" />
+            <span className="text-xs text-muted-foreground">{languages.length} skills</span>
           </div>
 
-          {/* Tools */}
-          <div>
-            <h3 className="text-xl sm:text-2xl font-semibold font-serif text-primary mb-4">Tools</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-              {tools.map((skill) => (
-                <Card
-                  key={skill.id}
-                  className="bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 overflow-hidden"
-                >
-                  <CardHeader className="pb-0 p-3 sm:p-4 md:p-6 md:pb-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div className="bg-accent/10 p-1.5 sm:p-2 rounded-full flex-shrink-0">
-                          <SkillIcon label={skill.name} className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                        </div>
-                        <CardTitle className="text-sm sm:text-base font-semibold text-foreground truncate">{skill.name}</CardTitle>
-                      </div>
-                      <Badge variant="secondary" className="text-[10px] sm:text-xs w-fit flex-shrink-0">
-                        Tool
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-3 sm:pt-4 p-3 sm:p-4 md:p-6 md:pt-4">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <span className="text-xs sm:text-sm text-muted-foreground">Proficiency</span>
-                      <span className="text-xs sm:text-sm font-medium">{skill.proficiency}%</span>
-                    </div>
-                    <Progress
-                      value={skill.proficiency}
-                      className="h-1.5 sm:h-2"
-                      aria-label={`${skill.name} proficiency ${skill.proficiency} percent`}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {languages.map(skill => <SkillCard key={skill.id} skill={skill} />)}
           </div>
         </div>
 
-        <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <Card className="text-center bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:scale-105">
-            <CardContent className="p-4 sm:p-6">
-              <div className="bg-accent/10 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Database className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold font-serif text-primary mb-2">Database Management</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">Expert in PostgreSQL, database design, and optimization</p>
-            </CardContent>
-          </Card>
+        {/* ── Tools & Platforms Section ── */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30">
+              <Wrench className="h-4 w-4 text-violet-400" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">Tools & Platforms</h3>
+            <div className="flex-1 h-px bg-border/50" />
+            <span className="text-xs text-muted-foreground">{tools.length} tools</span>
+          </div>
 
-          <Card className="text-center bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:scale-105">
-            <CardContent className="p-4 sm:p-6">
-              <div className="bg-accent/10 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Laptop className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold font-serif text-primary mb-2">Full-Stack Development</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">End-to-end application development with modern frameworks</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:scale-105">
-            <CardContent className="p-4 sm:p-6">
-              <div className="bg-accent/10 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Code className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold font-serif text-primary mb-2">API Integration</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">REST APIs, microservices, and third-party integrations</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {tools.map(skill => <SkillCard key={skill.id} skill={skill} />)}
+          </div>
         </div>
+
+        {/* ── Legend ── */}
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-10">
+          {LEGEND.map(({ label, color }) => (
+            <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 6px ${color}88` }} />
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Highlight Cards ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { icon: <Database className="h-5 w-5" />, color: "#10b981", title: "Database Management",  desc: "PostgreSQL, DB design & optimization" },
+            { icon: <Laptop   className="h-5 w-5" />, color: "#3b82f6", title: "Full-Stack Dev",       desc: "End-to-end apps with modern frameworks" },
+            { icon: <Cpu      className="h-5 w-5" />, color: "#8b5cf6", title: "API Integration",      desc: "REST APIs, microservices & integrations" },
+          ].map(({ icon, color, title, desc }) => (
+            <div
+              key={title}
+              className="group relative flex items-start gap-4 px-5 py-4 rounded-2xl border bg-card/50 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+              style={{ borderColor: color + "25" }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 0 20px ${color}25`)}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+                style={{ background: `radial-gradient(ellipse at 0% 50%, ${color}12 0%, transparent 70%)` }} />
+              <div className="p-2.5 rounded-xl flex-shrink-0" style={{ background: color + "18", color }}>
+                {icon}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-foreground">{title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   )

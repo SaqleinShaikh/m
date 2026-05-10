@@ -128,18 +128,17 @@ export default function CertificationsSection() {
 
           <div className="relative group mb-8">
             {canScrollLeftCerts && (
-              <button onClick={() => scrollByAmount(certsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100" aria-label="Scroll left">
+              <button onClick={() => scrollByAmount(certsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
                 <ChevronLeft className="h-5 w-5 text-accent" />
               </button>
             )}
             {canScrollRightCerts && (
-              <button onClick={() => scrollByAmount(certsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100" aria-label="Scroll right">
+              <button onClick={() => scrollByAmount(certsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
                 <ChevronRight className="h-5 w-5 text-accent" />
               </button>
             )}
 
-            {canScrollLeftCerts && <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-[5] pointer-events-none" />}
-            {canScrollRightCerts && <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />}
+
 
             <div
               ref={certsScrollRef}
@@ -209,18 +208,17 @@ export default function CertificationsSection() {
 
           <div className="relative group mb-8">
             {canScrollLeftAwards && (
-              <button onClick={() => scrollByAmount(awardsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100" aria-label="Scroll left">
+              <button onClick={() => scrollByAmount(awardsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
                 <ChevronLeft className="h-5 w-5 text-accent" />
               </button>
             )}
             {canScrollRightAwards && (
-              <button onClick={() => scrollByAmount(awardsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all opacity-0 group-hover:opacity-100" aria-label="Scroll right">
+              <button onClick={() => scrollByAmount(awardsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
                 <ChevronRight className="h-5 w-5 text-accent" />
               </button>
             )}
 
-            {canScrollLeftAwards && <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-[5] pointer-events-none" />}
-            {canScrollRightAwards && <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />}
+
 
             <div
               ref={awardsScrollRef}
