@@ -386,7 +386,7 @@ export default function EndorsementsSection() {
                     <Input
                       id="endorsement-email"
                       type="email"
-                      placeholder="your.email@company.com"
+                      placeholder="your.email@example.com"
                       value={newEndorsement.email}
                       onChange={(e) => setNewEndorsement({ ...newEndorsement, email: e.target.value })}
                       className="mt-2 h-11 border-accent/20 focus:border-accent"

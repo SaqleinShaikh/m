@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 
 // Dynamically import RichTextEditor to avoid SSR issues
 const RichTextEditor = dynamic(() => import('@/components/rich-text-editor'), {
@@ -45,7 +47,9 @@ export default function AdminBlogsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
-  
+  const [saving, setSaving] = useState(false)
+  const [editorKey, setEditorKey] = useState(0)
+
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -78,13 +82,24 @@ export default function AdminBlogsPage() {
     }
   }
 
-  const handleOpenDialog = (blog?: BlogPost) => {
+  const handleOpenDialog = async (blog?: BlogPost) => {
     if (blog) {
       setEditingBlog(blog)
+      // Fetch full blog content (the list API excludes the content field for performance)
+      let fullContent = ''
+      try {
+        const res = await fetch(`/api/blogs?slug=${blog.slug}`)
+        if (res.ok) {
+          const fullBlog = await res.json()
+          fullContent = fullBlog.content || ''
+        }
+      } catch (err) {
+        console.error('Failed to fetch blog content:', err)
+      }
       setFormData({
         title: blog.title,
         excerpt: blog.excerpt,
-        content: blog.content,
+        content: fullContent,
         image: blog.image,
         category: blog.category,
         visible: blog.visible,
@@ -102,14 +117,21 @@ export default function AdminBlogsPage() {
         published_date: new Date().toISOString().split('T')[0]
       })
     }
+    setEditorKey(prev => prev + 1)
     setIsDialogOpen(true)
   }
 
   const handleSubmit = async () => {
+    if (!formData.title || !formData.content) {
+      toast.error("Please fill in all required fields")
+      return
+    }
+
+    setSaving(true)
     try {
       const url = '/api/blogs'
       const method = editingBlog ? 'PUT' : 'POST'
-      const body = editingBlog 
+      const body = editingBlog
         ? { ...editingBlog, ...formData }
         : formData
 
@@ -122,9 +144,15 @@ export default function AdminBlogsPage() {
       if (response.ok) {
         await fetchBlogs()
         setIsDialogOpen(false)
+        toast.success(editingBlog ? "Blog updated successfully" : "Blog created successfully")
+      } else {
+        toast.error("Failed to save blog")
       }
     } catch (error) {
       console.error('Failed to save blog:', error)
+      toast.error("An error occurred while saving")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -153,7 +181,7 @@ export default function AdminBlogsPage() {
       })
 
       if (response.ok) {
-        setBlogs(blogs.map(b => 
+        setBlogs(blogs.map(b =>
           b.id === blog.id ? { ...b, visible: !b.visible } : b
         ))
       }
@@ -172,8 +200,8 @@ export default function AdminBlogsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => router.push("/admin/dashboard")}
                 className="hover:bg-accent/10"
               >
@@ -189,7 +217,7 @@ export default function AdminBlogsPage() {
                 </p>
               </div>
             </div>
-            <Button 
+            <Button
               onClick={() => handleOpenDialog()}
               className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary shadow-lg"
             >
@@ -209,7 +237,7 @@ export default function AdminBlogsPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">No blog posts yet</h3>
               <p className="text-muted-foreground mb-6">Get started by creating your first blog post</p>
-              <Button 
+              <Button
                 onClick={() => handleOpenDialog()}
                 className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary"
               >
@@ -221,8 +249,8 @@ export default function AdminBlogsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.map((blog) => (
-              <Card 
-                key={blog.id} 
+              <Card
+                key={blog.id}
                 className="group hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 overflow-hidden"
               >
                 <CardContent className="p-0">
@@ -234,7 +262,7 @@ export default function AdminBlogsPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute top-3 right-3 flex gap-2">
-                      <Badge 
+                      <Badge
                         variant={blog.visible ? "default" : "secondary"}
                         className={blog.visible ? "bg-green-500/90 backdrop-blur-sm" : "bg-gray-500/90 backdrop-blur-sm"}
                       >
@@ -256,27 +284,27 @@ export default function AdminBlogsPage() {
                       {blog.excerpt}
                     </p>
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 hover:bg-accent/10 hover:border-accent/40" 
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 hover:bg-accent/10 hover:border-accent/40"
                         onClick={() => handleOpenDialog(blog)}
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         className="hover:bg-accent/10 hover:border-accent/40"
                         onClick={() => handleToggleVisibility(blog)}
                       >
                         {blog.visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
-                        className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive" 
+                        className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
                         onClick={() => handleDelete(blog.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -359,6 +387,7 @@ export default function AdminBlogsPage() {
               <Label htmlFor="content" className="text-sm font-semibold">Content *</Label>
               <div className="mt-2">
                 <RichTextEditor
+                  key={editorKey}
                   content={formData.content}
                   onChange={(content) => setFormData({ ...formData, content })}
                   placeholder="Write your blog content here... You can paste formatted text with images!"
@@ -381,15 +410,23 @@ export default function AdminBlogsPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button 
-                onClick={handleSubmit} 
+              <Button
+                onClick={handleSubmit}
+                disabled={saving}
                 className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary"
               >
-                {editingBlog ? 'Update Post' : 'Create Post'}
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  editingBlog ? 'Update Post' : 'Create Post'
+                )}
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsDialogOpen(false)} 
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
                 className="flex-1 border-accent/30 hover:bg-accent/10"
               >
                 Cancel
