@@ -143,7 +143,7 @@ export default function SkillsSection() {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30">
               <Wrench className="h-4 w-4 text-violet-400" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">Tools & Platforms</h3>
+            <h3 className="text-lg font-bold text-foreground">Tools & Platforms </h3>
             <div className="flex-1 h-px bg-border/50" />
             <span className="text-xs text-muted-foreground">{tools.length} tools</span>
           </div>
