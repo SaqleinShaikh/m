@@ -27,10 +27,7 @@ const nextConfig = {
     return config;
   },
 
-<<<<<<< HEAD
-=======
- 
->>>>>>> 3d22f2faa5800977dca03dc24c76c6292a713cc2
+
 };
 
 export default nextConfig;
