@@ -3,15 +3,19 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },
+
   images: {
     unoptimized: true,
   },
+
   experimental: {
     turbo: undefined,
   },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -19,8 +23,19 @@ const nextConfig = {
         fs: false,
       };
     }
+
     return config;
   },
-}
 
-export default nextConfig
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        destination: 'https://saqleinshaikh.in/:path*',
+        permanent: true,
+      },
+    ];
+  },
+};
+
+export default nextConfig;
