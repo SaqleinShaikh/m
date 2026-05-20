@@ -128,12 +128,12 @@ export default function CertificationsSection() {
 
           <div className="relative group mb-8">
             {canScrollLeftCerts && (
-              <button onClick={() => scrollByAmount(certsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
+              <button onClick={() => scrollByAmount(certsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
                 <ChevronLeft className="h-5 w-5 text-accent" />
               </button>
             )}
             {canScrollRightCerts && (
-              <button onClick={() => scrollByAmount(certsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
+              <button onClick={() => scrollByAmount(certsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
                 <ChevronRight className="h-5 w-5 text-accent" />
               </button>
             )}
@@ -142,7 +142,7 @@ export default function CertificationsSection() {
 
             <div
               ref={certsScrollRef}
-              className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
+              className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-pl-4 sm:mx-0 sm:px-0 sm:scroll-pl-0"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {certs.map((cert) => (
@@ -208,12 +208,12 @@ export default function CertificationsSection() {
 
           <div className="relative group mb-8">
             {canScrollLeftAwards && (
-              <button onClick={() => scrollByAmount(awardsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
+              <button onClick={() => scrollByAmount(awardsScrollRef, -1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll left">
                 <ChevronLeft className="h-5 w-5 text-accent" />
               </button>
             )}
             {canScrollRightAwards && (
-              <button onClick={() => scrollByAmount(awardsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
+              <button onClick={() => scrollByAmount(awardsScrollRef, 1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all" aria-label="Scroll right">
                 <ChevronRight className="h-5 w-5 text-accent" />
               </button>
             )}
@@ -222,7 +222,7 @@ export default function CertificationsSection() {
 
             <div
               ref={awardsScrollRef}
-              className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
+              className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-pl-4 sm:mx-0 sm:px-0 sm:scroll-pl-0"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {awards.map((award) => (

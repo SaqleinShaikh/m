@@ -469,8 +469,8 @@ export default function EndorsementsSection() {
                           className="mt-1 h-5 w-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 cursor-pointer flex-shrink-0"
                         />
                         <div className="flex-1">
-                          <Label htmlFor="image-consent" className="text-sm font-medium cursor-pointer text-amber-900 dark:text-amber-100 leading-relaxed">
-                            I authorize Saqlein Shaikh to use my profile image from LinkedIn or other social media platforms to display alongside my endorsement on this website.
+                          <Label htmlFor="image-consent" className="text-sm font-medium cursor-pointer text-amber-800 dark:text-amber-200 leading-relaxed">
+                            I authorize Saqlein Shaikh to use my profile image from LinkedIn or other professional social media platforms to beautifully display alongside my endorsement.
                           </Label>
                         </div>
                       </div>
@@ -527,7 +527,7 @@ export default function EndorsementsSection() {
           {canScrollLeft && (
             <button
               onClick={() => scrollByAmount(-1)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all"
               aria-label="Scroll left"
             >
               <ChevronLeft className="h-5 w-5 text-accent" />
@@ -536,7 +536,7 @@ export default function EndorsementsSection() {
           {canScrollRight && (
             <button
               onClick={() => scrollByAmount(1)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg flex items-center justify-center hover:bg-accent/20 transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-accent/30 shadow-lg hidden md:flex items-center justify-center hover:bg-accent/20 transition-all"
               aria-label="Scroll right"
             >
               <ChevronRight className="h-5 w-5 text-accent" />
@@ -547,7 +547,7 @@ export default function EndorsementsSection() {
 
           <div
             ref={scrollRef}
-            className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0"
+            className="flex gap-4 md:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-pl-4 sm:mx-0 sm:px-0 sm:scroll-pl-0"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {displayedEndorsements.map((endorsement) => (

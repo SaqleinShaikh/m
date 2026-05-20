@@ -234,7 +234,7 @@ export default function BlogDetailPage() {
           />
         ) : null}
         <div 
-          className="prose prose-neutral dark:prose-invert max-w-none leading-relaxed"
+          className="prose prose-neutral dark:prose-invert max-w-none leading-relaxed break-words"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
@@ -320,7 +320,7 @@ export default function BlogDetailPage() {
                         {new Date(comment.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-foreground">{comment.comment}</p>
+                    <p className="text-sm text-foreground break-words">{comment.comment}</p>
                   </div>
                 </div>
               </Card>

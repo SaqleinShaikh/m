@@ -189,7 +189,7 @@ export default function EndorsePage() {
                   </Label>
                   <Input
                     id="endorsement-name"
-                    placeholder=""
+                    placeholder="Eg. Saqlein Shaikh"
                     value={newEndorsement.name}
                     onChange={(e) => setNewEndorsement({ ...newEndorsement, name: e.target.value })}
                     className="h-12 bg-background/50 border-input/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-foreground font-medium placeholder:text-muted-foreground/40 transition-all hover:border-primary/50 shadow-sm rounded-xl"
@@ -270,9 +270,9 @@ export default function EndorsePage() {
               {/* Message Content */}
               <div className="space-y-2.5 group">
                 <Label htmlFor="endorsement-content" className="text-sm font-semibold flex items-center gap-2 text-foreground/80 group-focus-within:text-primary transition-colors">
-                  <MessageSquareHeart className="w-4 h-4" /> Your Message <span className="text-destructive">*</span>
+                  <MessageSquareHeart className="w-4 h-4 text-primary" /> Your Message <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
+                <div className="space-y-3">
                   <Textarea
                     id="endorsement-content"
                     placeholder="Share a few thoughts about working together... (the AI tool connects your thoughts into a professional summary!)"
@@ -280,30 +280,33 @@ export default function EndorsePage() {
                     onChange={(e) => setNewEndorsement({ ...newEndorsement, endorsement: e.target.value })}
                     rows={6}
                     maxLength={1000}
-                    className="resize-none h-36 md:h-44 text-base p-5 bg-background/50 border-input/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-foreground font-medium placeholder:text-muted-foreground/40 transition-all hover:border-primary/50 shadow-sm rounded-2xl pb-14 leading-relaxed"
+                    className="resize-none h-36 md:h-44 text-base p-5 bg-background/40 dark:bg-background/20 border border-border/80 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary text-foreground font-medium placeholder:text-muted-foreground/40 transition-all duration-300 hover:border-primary/50 shadow-inner rounded-2xl leading-relaxed break-words"
                     required
                   />
-                  <div className="absolute bottom-3 right-3 left-3 flex justify-between items-center pointer-events-none">
-                    <span className={`text-xs ml-2 px-2 py-1 rounded-md backdrop-blur-md ${newEndorsement.endorsement.length >= 950 ? 'bg-destructive/10 text-destructive font-bold' : 'bg-background/80 text-muted-foreground font-medium'}`}>
-                      {newEndorsement.endorsement.length} / 1000
-                    </span>
+                  <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3.5 pt-1.5">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 text-xs bg-muted/50 dark:bg-muted/20 px-3.5 py-2 rounded-full border border-border/40 font-medium text-muted-foreground w-fit shadow-sm">
+                      <span className={`w-1.5 h-1.5 rounded-full ${newEndorsement.endorsement.length >= 950 ? 'bg-destructive animate-pulse' : 'bg-primary/60'}`} />
+                      <span className={newEndorsement.endorsement.length >= 950 ? 'text-destructive font-bold' : ''}>
+                        {newEndorsement.endorsement.length} / 1000 characters
+                      </span>
+                    </div>
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
                       onClick={handleGenerateAI}
                       disabled={isGenerating || newEndorsement.endorsement.length === 0}
-                      className="rounded-full shadow-md bg-accent text-accent-foreground hover:bg-accent/90 border border-accent/20 transition-all pointer-events-auto group/btn pl-3 pr-4 h-9"
+                      className="w-full sm:w-auto rounded-full shadow-md bg-gradient-to-r from-violet-600/10 to-indigo-600/10 dark:from-violet-500/10 dark:to-indigo-500/10 hover:from-violet-600/20 hover:to-indigo-600/20 text-primary border border-primary/20 hover:border-primary/45 transition-all duration-300 group/btn pl-4 pr-5 h-9 flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:hover:from-violet-600/10 disabled:hover:to-indigo-600/10 cursor-pointer"
                       title="Enhance your message with AI"
                     >
                       {isGenerating ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full" />
                           <span>Generating...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-amber-300 animate-pulse" />
+                        <div className="flex items-center justify-center gap-2">
+                          <Sparkles className="h-4 w-4 text-violet-500 animate-pulse" />
                           <span className="font-semibold text-sm">AI Enhance</span>
                         </div>
                       )}
@@ -314,44 +317,48 @@ export default function EndorsePage() {
 
               {/* Consent Box */}
               {!imageFile && newEndorsement.endorsement.length > 0 && (
-                <div className="animate-fade-in-up bg-gradient-to-r from-amber-500/10 to-amber-500/5 p-5 rounded-2xl border border-amber-500/20 shadow-sm backdrop-blur-sm">
+                <div className="animate-fade-in-up bg-card/90 dark:bg-card/40 p-5 rounded-2xl border-2 border-amber-500/30 dark:border-amber-500/20 shadow-md backdrop-blur-md transition-all duration-300 hover:border-amber-500/50">
                   <div className="flex items-start gap-4">
-                    <div className="pt-0.5">
+                    <div className="pt-1">
                       <input
                         type="checkbox"
                         id="image-consent"
                         checked={imageConsent}
                         onChange={(e) => setImageConsent(e.target.checked)}
-                        className="h-5 w-5 rounded border-amber-400/50 text-amber-500 focus:ring-amber-500/30 focus:ring-offset-0 cursor-pointer transition-all hover:border-amber-400"
+                        className="h-5 w-5 rounded border-amber-500/50 text-amber-600 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer transition-all hover:border-amber-500 accent-amber-600"
                       />
                     </div>
                     <div className="flex-1">
-                      <Label htmlFor="image-consent" className="text-sm cursor-pointer text-amber-900/90 dark:text-amber-100/90 leading-relaxed font-medium block">
-                        I authorize to use my profile image from LinkedIn or other professional social media platforms to beautifully display alongside my endorsement.
+                      <Label htmlFor="image-consent" className="text-sm cursor-pointer text-amber-800 dark:text-amber-200 leading-relaxed font-bold block">
+                        I authorize Saqlein Shaikh to use my profile image from LinkedIn or other professional social media platforms to beautifully display alongside my endorsement.
                       </Label>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Information Note */}
-              <div className="bg-primary/5 p-5 rounded-2xl flex items-start gap-3 border border-primary/10 shadow-inner">
-                <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0" />
-                <div className="text-sm text-foreground/80 leading-relaxed">
-                  <p className="font-semibold text-foreground mb-1">Secure & Moderated</p>
-                  <p>Your endorsement will be securely sent for review. Only vetted and approved endorsements will appear live on the portfolio website.</p>
+              {/* Information Note (Trust Badge) */}
+              <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-5 rounded-2xl flex items-start gap-4 border border-emerald-500/20 dark:border-emerald-500/10 shadow-sm transition-all hover:border-emerald-500/30 duration-300">
+                <div className="p-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                  <ShieldCheck className="h-5 w-5 animate-pulse" />
+                </div>
+                <div className="text-sm text-foreground/80 leading-relaxed pt-0.5">
+                  <p className="font-bold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
+                    Secure & Moderated
+                  </p>
+                  <p className="text-emerald-600/90 dark:text-emerald-400/80 font-medium">Your endorsement will be securely sent for review. Only vetted and approved endorsements will appear live on the portfolio website.</p>
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="pt-4">
+              {/* Submit Button & Layout Spacer */}
+              <div className="pt-4 pb-2 mb-4">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-14 md:h-16 text-lg font-bold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all outline-none focus-visible:ring-4 focus-visible:ring-primary/30 rounded-2xl group overflow-hidden relative"
+                  className="w-full h-14 md:h-16 text-lg font-bold bg-gradient-to-r from-primary via-accent to-primary hover:from-primary/95 hover:to-accent/95 text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all outline-none focus-visible:ring-4 focus-visible:ring-primary/30 rounded-2xl group overflow-hidden relative border border-white/10 cursor-pointer"
                 >
                   {/* Button shine effect */}
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer" />
+                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent group-hover:animate-shimmer" />
 
                   {isSubmitting ? (
                     <span className="flex items-center gap-3 relative z-10">
@@ -360,11 +367,14 @@ export default function EndorsePage() {
                     </span>
                   ) : (
                     <span className="flex items-center gap-2 relative z-10">
-                      Submit Endorsement <Send className="w-5 h-5 ml-1 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                      Submit Endorsement <Send className="w-5 h-5 ml-1.5 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-all" />
                     </span>
                   )}
                 </Button>
               </div>
+
+              {/* Mobile anti-overlap viewport helper */}
+              <div className="h-10 md:hidden" />
             </form>
           </CardContent>
         </Card>

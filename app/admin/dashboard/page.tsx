@@ -135,15 +135,16 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-center sm:text-left">
             <div>
               <h1 className="text-2xl font-bold font-serif text-primary">Admin Dashboard</h1>
               <p className="text-sm text-muted-foreground">Welcome back, Saqlein</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
               <Button
                 variant="outline"
                 onClick={() => router.push("/")}
+                className="w-full sm:w-auto"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View Site
@@ -151,6 +152,7 @@ export default function AdminDashboard() {
               <Button
                 variant="destructive"
                 onClick={handleLogout}
+                className="w-full sm:w-auto"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
