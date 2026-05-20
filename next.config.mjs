@@ -27,15 +27,7 @@ const nextConfig = {
     return config;
   },
 
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        destination: 'https://saqleinshaikh.in/:path*',
-        permanent: true,
-      },
-    ];
-  },
+ 
 };
 
 export default nextConfig;
