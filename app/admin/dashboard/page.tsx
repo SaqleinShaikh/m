@@ -13,7 +13,8 @@ import {
   Eye,
   Edit,
   Plus,
-  Users
+  Users,
+  Activity
 } from "lucide-react"
 
 export default function AdminDashboard() {
@@ -50,6 +51,13 @@ export default function AdminDashboard() {
       icon: Mail,
       href: "/admin/emails",
       color: "from-blue-500 to-cyan-500"
+    },
+    {
+      title: "Email Trigger Logs",
+      description: "Track system outgoing emails, SMTP delivery statuses, and BCC settings",
+      icon: Activity,
+      href: "/admin/email-logs",
+      color: "from-rose-500 to-orange-500"
     },
     {
       title: "Endorsements",

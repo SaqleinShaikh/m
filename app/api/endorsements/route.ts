@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import nodemailer from 'nodemailer'
+import { logEmailTrigger } from '@/lib/email-logger'
 
 function processEmailImage(image: string | undefined): { attachments: any[], imageSrc: string, hasImage: boolean } {
   let attachments: any[] = []
@@ -92,13 +93,18 @@ async function sendEndorsementNotification(endorsement: {
     const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
     const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
+    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+    const bccEmail = process.env.EMAIL_USER || undefined
+
     // ── Admin notification ──────────────────────────────────────────────────
-    await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
-      to: 'saqleinsheikh43@gmail.com',
-      subject: `New Endorsement Request from ${endorsement.name}`,
-      attachments,
-      html: `<!DOCTYPE html>
+    try {
+      await transporter.sendMail({
+        from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+        to: 'saqleinsheikh43@gmail.com',
+        bcc: bccEmail,
+        subject: `New Endorsement Request from ${endorsement.name}`,
+        attachments,
+        html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -180,15 +186,38 @@ async function sendEndorsementNotification(endorsement: {
   </table>
 </body>
 </html>`,
-    })
+      })
+
+      // Log success
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: 'saqleinsheikh43@gmail.com',
+        subject: `New Endorsement Request from ${endorsement.name}`,
+        emailType: 'endorsement_submission',
+        status: 'sent'
+      }).catch(err => console.error('Failed to log admin endorsement notification:', err))
+
+    } catch (sendErr: any) {
+      console.error('Failed to send admin endorsement notification email:', sendErr)
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: 'saqleinsheikh43@gmail.com',
+        subject: `New Endorsement Request from ${endorsement.name}`,
+        emailType: 'endorsement_submission',
+        status: 'fail',
+        errorMessage: sendErr?.message || String(sendErr)
+      }).catch(err => console.error('Failed to log failed admin endorsement notification:', err))
+    }
 
     // ── Confirmation email to submitter ─────────────────────────────────────
-    await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
-      to: endorsement.email,
-      subject: `We received your endorsement – Saqlein Shaikh`,
-      attachments,
-      html: `<!DOCTYPE html>
+    try {
+      await transporter.sendMail({
+        from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+        to: endorsement.email,
+        bcc: bccEmail,
+        subject: `We received your endorsement – Saqlein Shaikh`,
+        attachments,
+        html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:20px;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#333333;">
@@ -253,7 +282,28 @@ async function sendEndorsementNotification(endorsement: {
   </table>
 </body>
 </html>`,
-    })
+      })
+
+      // Log success
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: endorsement.email,
+        subject: `We received your endorsement – Saqlein Shaikh`,
+        emailType: 'endorsement_submission',
+        status: 'sent'
+      }).catch(err => console.error('Failed to log submitter endorsement confirmation:', err))
+
+    } catch (sendErr: any) {
+      console.error('Failed to send submitter endorsement confirmation email:', sendErr)
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: endorsement.email,
+        subject: `We received your endorsement – Saqlein Shaikh`,
+        emailType: 'endorsement_submission',
+        status: 'fail',
+        errorMessage: sendErr?.message || String(sendErr)
+      }).catch(err => console.error('Failed to log failed submitter endorsement confirmation:', err))
+    }
 
     console.log('Endorsement emails sent successfully')
   } catch (err) {
@@ -332,8 +382,8 @@ export async function POST(request: Request) {
       rating: 5,
     }).catch(err => console.error('Failed to send notification in background:', err))
     
-    // Also save to email_messages for notification
-    const { error: emailError } = await supabaseAdmin
+    // Also save to email_messages for notification in background (don't block response)
+    supabaseAdmin
       .from('email_messages')
       .insert({
         type: 'endorsement',
@@ -342,11 +392,14 @@ export async function POST(request: Request) {
         message: body.endorsement,
         read: false
       })
-    
-    if (emailError) {
-      console.error('Error saving to email_messages:', emailError)
-      // Don't fail the request if email notification fails
-    }
+      .then(({ error: emailError }) => {
+        if (emailError) {
+          console.error('Error saving to email_messages in background:', emailError)
+        } else {
+          console.log('Successfully saved to email_messages in background')
+        }
+      })
+      .catch(err => console.error('Error in email_messages background promise:', err))
     
     return NextResponse.json(returnedData, { status: 201 })
   } catch (error: any) {
@@ -430,12 +483,17 @@ async function sendApprovalNotification(endorsement: {
   const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
   const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${process.env.EMAIL_USER}>`,
-    to: endorsement.email,
-    subject: `Your endorsement is now live! – Saqlein Shaikh`,
-    attachments,
-    html: `<!DOCTYPE html>
+  const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+  const bccEmail = process.env.EMAIL_USER || undefined
+
+  try {
+    await transporter.sendMail({
+      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+      to: endorsement.email,
+      bcc: bccEmail,
+      subject: `Your endorsement is now live! – Saqlein Shaikh`,
+      attachments,
+      html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:20px;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#333333;">
@@ -500,9 +558,29 @@ async function sendApprovalNotification(endorsement: {
   </table>
 </body>
 </html>`,
-  })
+    })
 
-  console.log('Approval notification sent to:', endorsement.email)
+    // Log success
+    logEmailTrigger({
+      sender: fromEmail,
+      recipient: endorsement.email,
+      subject: `Your endorsement is now live! – Saqlein Shaikh`,
+      emailType: 'endorsement_approval',
+      status: 'sent'
+    }).catch(err => console.error('Failed to log approval email success:', err))
+
+    console.log('Approval notification sent to:', endorsement.email)
+  } catch (sendErr: any) {
+    console.error('Failed to send approval notification email:', sendErr)
+    logEmailTrigger({
+      sender: fromEmail,
+      recipient: endorsement.email,
+      subject: `Your endorsement is now live! – Saqlein Shaikh`,
+      emailType: 'endorsement_approval',
+      status: 'fail',
+      errorMessage: sendErr?.message || String(sendErr)
+    }).catch(err => console.error('Failed to log approval email failure:', err))
+  }
 }
 
 export async function DELETE(request: Request) {

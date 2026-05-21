@@ -81,6 +81,20 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['admin_settings']['Row'], 'id' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['admin_settings']['Insert']>
       }
+      email_logs: {
+        Row: {
+          id: string
+          sender: string
+          recipient: string
+          subject: string
+          email_type: 'contact_notification' | 'contact_auto_response' | 'endorsement_submission' | 'endorsement_approval' | 'password_reset' | 'unknown'
+          status: 'sent' | 'fail'
+          error_message: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['email_logs']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['email_logs']['Insert']>
+      }
     }
   }
 }

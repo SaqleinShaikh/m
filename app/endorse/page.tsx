@@ -7,7 +7,37 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Mail, CheckCircle, Sparkles, User, Briefcase, Building2, MessageSquareHeart, Send, ShieldCheck, Camera, ImagePlus } from "lucide-react"
+import { Mail, CheckCircle, Sparkles, User, Briefcase, Building2, MessageSquareHeart, Send, ShieldCheck, Camera, ImagePlus, AlertCircle } from "lucide-react"
+
+const compressProfileImage = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      const targetSize = 150
+      canvas.width = targetSize
+      canvas.height = targetSize
+      
+      if (ctx) {
+        // Draw centered and cropped square image (avatar layout)
+        const minSide = Math.min(img.width, img.height)
+        const sx = (img.width - minSide) / 2
+        const sy = (img.height - minSide) / 2
+        
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize)
+        resolve(canvas.toDataURL('image/jpeg', 0.8))
+      } else {
+        resolve(base64Str)
+      }
+    }
+    img.onerror = () => {
+      resolve(base64Str)
+    }
+    img.src = base64Str
+  })
+}
 
 export default function EndorsePage() {
   const router = useRouter()
@@ -17,6 +47,8 @@ export default function EndorsePage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
   const [imageConsent, setImageConsent] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
   const [newEndorsement, setNewEndorsement] = useState({
     name: "",
     email: "",
@@ -26,13 +58,33 @@ export default function EndorsePage() {
     image: "",
   })
 
+  const fallbackTemplates = [
+    {
+      label: "Technical & Code Quality",
+      text: "Saqlein is a fantastic developer who delivers top-tier code and solves complex engineering challenges with ease. His work has greatly improved our systems' performance and reliability.",
+    },
+    {
+      label: "Collaboration & Teamwork",
+      text: "It was a pleasure collaborating with Saqlein. He brings incredible energy to the team, excels in technical communication, and always ensures project success through strong cooperation.",
+    },
+    {
+      label: "Creative Design & UI Polish",
+      text: "Saqlein has an exceptional eye for detail and modern design. He seamlessly transformed our requirements into a highly polished, fully responsive, and user-friendly web interface.",
+    },
+    {
+      label: "Reliable Delivery & Results",
+      text: "Highly recommend Saqlein! He is incredibly dependable, communicates clearly at every milestone, and always delivers exceptional results on time.",
+    }
+  ]
+
   const handleGenerateAI = async () => {
     if (!newEndorsement.endorsement || newEndorsement.endorsement.length < 5) {
-      alert("Please enter a few words about your experience first so the AI can expand on it!")
+      setAiError("Please enter a few words about your experience first so the AI can expand on it!")
       return
     }
 
     setIsGenerating(true)
+    setAiError(null)
     try {
       const response = await fetch('/api/generate-endorsement', {
         method: 'POST',
@@ -44,10 +96,22 @@ export default function EndorsePage() {
       if (response.ok) {
         setNewEndorsement({ ...newEndorsement, endorsement: data.generatedText })
       } else {
-        alert(data.error || "Failed to generate AI response")
+        const errMsg = data.error || "Failed to generate AI response"
+        console.error('[AI Enhance Error] API returned error status:', errMsg)
+        
+        // Auto fallback to random template
+        const randomTpl = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+        setNewEndorsement({ ...newEndorsement, endorsement: randomTpl.text })
+        setAiError("AI Enhance is temporarily offline. We have automatically populated a professional template for you inside the message box below!")
       }
-    } catch (error) {
-      alert("Failed to connect to AI service. Please make sure the AI API key is configured.")
+    } catch (error: any) {
+      const errMsg = error.message || "Failed to connect to AI service."
+      console.error('[AI Enhance Error] Connection or execution failed:', error)
+      
+      // Auto fallback to random template
+      const randomTpl = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+      setNewEndorsement({ ...newEndorsement, endorsement: randomTpl.text })
+      setAiError("AI Enhance is temporarily offline. We have automatically populated a professional template for you inside the message box below!")
     } finally {
       setIsGenerating(false)
     }
@@ -67,7 +131,11 @@ export default function EndorsePage() {
       setImageFile(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const originalBase64 = reader.result as string
+        compressProfileImage(originalBase64).then((compressed) => {
+          setImagePreview(compressed)
+          console.log('[Image Compression] Original size:', Math.round(originalBase64.length / 1024), 'KB, Compressed size:', Math.round(compressed.length / 1024), 'KB')
+        })
       }
       reader.readAsDataURL(file)
     }
@@ -129,19 +197,35 @@ export default function EndorsePage() {
               </p>
             </div>
 
-            <div className="bg-green-500/5 rounded-2xl p-4 border border-green-500/10 backdrop-blur-sm">
-              <p className="text-foreground/80 text-sm leading-relaxed font-medium">
-                You will receive an email once it is approved and beautifully published on the website!
+            <div className="bg-green-500/5 rounded-2xl p-5 border border-green-500/10 backdrop-blur-sm space-y-3">
+              <p className="text-foreground/80 text-sm leading-relaxed font-bold">
+                You will receive a confirmation email shortly, and another once it is approved and published!
+              </p>
+              <p className="text-muted-foreground/90 text-xs leading-relaxed italic font-medium">
+                💡 Tip: If you don't see our email in your inbox within a few minutes, please check your <strong>Spam</strong> folder and mark it as "Not Spam" to ensure you receive future approval updates.
               </p>
             </div>
 
-            <div className="pt-6">
+             <div className="pt-6">
               <Button
-                onClick={() => router.push('/')}
-                className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary py-6 text-lg font-semibold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all rounded-xl group"
+                onClick={() => {
+                  setIsNavigating(true)
+                  router.push('/')
+                }}
+                disabled={isNavigating}
+                className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary py-6 text-lg font-semibold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all rounded-xl group disabled:opacity-75 disabled:pointer-events-none"
               >
-                Return to Portfolio
-                <Sparkles className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                {isNavigating ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full" />
+                    <span>Returning to Portfolio...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <span>Return to Portfolio</span>
+                    <Sparkles className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -312,6 +396,19 @@ export default function EndorsePage() {
                       )}
                     </Button>
                   </div>
+
+                  {aiError && (
+                    <div className="space-y-4 pt-2">
+                      {/* Premium Warning Alert Box */}
+                      <div className="bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-sm rounded-xl p-4 flex items-start gap-3 backdrop-blur-sm animate-fade-in-up">
+                        <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400 animate-pulse" />
+                        <div className="space-y-1">
+                          <p className="font-bold">AI Service Offline (Auto-Fallback Active)</p>
+                          <p className="text-xs font-medium leading-relaxed">{aiError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { logEmailTrigger } from '@/lib/email-logger';
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
       from: `"Saqlein Shaikh | Portfolio" <${process.env.EMAIL_USER}>`,
       to: 'saqleinsheikh43@gmail.com',
       replyTo: email,
+      bcc: process.env.EMAIL_USER || undefined,
       subject: `Portfolio Contact: Message from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
     const autoResponseEmail = {
       from: `"Saqlein Shaikh | Portfolio" <${process.env.EMAIL_USER}>`,
       to: email,
+      bcc: process.env.EMAIL_USER || undefined,
       subject: `Thank you for reaching out - Saqlein Shaikh`,
       html: `
         <!DOCTYPE html>
@@ -187,15 +190,63 @@ export async function POST(request: Request) {
       `,
     };
 
+    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com';
+
     console.log('Sending notification email to admin...');
     // Send notification email to you
-    const notificationResult = await transporter.sendMail(notificationEmail);
-    console.log('Notification email sent successfully:', notificationResult.messageId);
+    try {
+      const notificationResult = await transporter.sendMail(notificationEmail);
+      console.log('Notification email sent successfully:', notificationResult.messageId);
+
+      // Log success
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: 'saqleinsheikh43@gmail.com',
+        subject: notificationEmail.subject,
+        emailType: 'contact_notification',
+        status: 'sent'
+      }).catch(err => console.error('Failed to save notification email log:', err));
+
+    } catch (err: any) {
+      console.error('Failed to send notification email:', err);
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: 'saqleinsheikh43@gmail.com',
+        subject: notificationEmail.subject,
+        emailType: 'contact_notification',
+        status: 'fail',
+        errorMessage: err?.message || String(err)
+      }).catch(err2 => console.error('Failed to save failed notification email log:', err2));
+      throw err;
+    }
 
     console.log('Sending auto-response email to sender...');
     // Send auto-response email to the sender
-    const autoResponseResult = await transporter.sendMail(autoResponseEmail);
-    console.log('Auto-response email sent successfully:', autoResponseResult.messageId);
+    try {
+      const autoResponseResult = await transporter.sendMail(autoResponseEmail);
+      console.log('Auto-response email sent successfully:', autoResponseResult.messageId);
+
+      // Log success
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: email,
+        subject: autoResponseEmail.subject,
+        emailType: 'contact_auto_response',
+        status: 'sent'
+      }).catch(err => console.error('Failed to save auto-response email log:', err));
+
+    } catch (err: any) {
+      console.error('Failed to send auto-response email:', err);
+      logEmailTrigger({
+        sender: fromEmail,
+        recipient: email,
+        subject: autoResponseEmail.subject,
+        emailType: 'contact_auto_response',
+        status: 'fail',
+        errorMessage: err?.message || String(err)
+      }).catch(err2 => console.error('Failed to save failed auto-response email log:', err2));
+      throw err;
+    }
 
     return NextResponse.json(
       { message: 'Emails sent successfully' },

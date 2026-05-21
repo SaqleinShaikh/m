@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Star, Plus, Search, Filter, Building, Mail, ChevronLeft, ChevronRight } from "lucide-react"
+import { Star, Plus, Search, Filter, Building, Mail, ChevronLeft, ChevronRight, Sparkles, AlertCircle } from "lucide-react"
 import { useAutoScroll } from "@/hooks/use-auto-scroll"
 
 interface Endorsement {
@@ -120,6 +120,55 @@ function EndorsementCard({ endorsement }: { endorsement: Endorsement }) {
   )
 }
 
+const compressProfileImage = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      const targetSize = 150
+      canvas.width = targetSize
+      canvas.height = targetSize
+      
+      if (ctx) {
+        // Draw centered and cropped square image (avatar layout)
+        const minSide = Math.min(img.width, img.height)
+        const sx = (img.width - minSide) / 2
+        const sy = (img.height - minSide) / 2
+        
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize)
+        resolve(canvas.toDataURL('image/jpeg', 0.8))
+      } else {
+        resolve(base64Str)
+      }
+    }
+    img.onerror = () => {
+      resolve(base64Str)
+    }
+    img.src = base64Str
+  })
+}
+
+const fallbackTemplates = [
+  {
+    label: "Technical & Code Quality",
+    text: "Saqlein is a fantastic developer who delivers top-tier code and solves complex engineering challenges with ease. His work has greatly improved our systems' performance and reliability.",
+  },
+  {
+    label: "Collaboration & Teamwork",
+    text: "It was a pleasure collaborating with Saqlein. He brings incredible energy to the team, excels in technical communication, and always ensures project success through strong cooperation.",
+  },
+  {
+    label: "Creative Design & UI Polish",
+    text: "Saqlein has an exceptional eye for detail and modern design. He seamlessly transformed our requirements into a highly polished, fully responsive, and user-friendly web interface.",
+  },
+  {
+    label: "Reliable Delivery & Results",
+    text: "Highly recommend Saqlein! He is incredibly dependable, communicates clearly at every milestone, and always delivers exceptional results on time.",
+  }
+]
+
 export default function EndorsementsSection() {
   const [endorsements, setEndorsements] = useState<Endorsement[]>([])
   const [loading, setLoading] = useState(true)
@@ -143,6 +192,49 @@ export default function EndorsementsSection() {
     endorsement: "",
     image: "",
   })
+  
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  const handleGenerateAI = async () => {
+    if (!newEndorsement.endorsement || newEndorsement.endorsement.length < 5) {
+      setAiError("Please enter a few words about your experience first so the AI can expand on it!")
+      return
+    }
+
+    setIsGenerating(true)
+    setAiError(null)
+    try {
+      const response = await fetch('/api/generate-endorsement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: newEndorsement.endorsement })
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        setNewEndorsement({ ...newEndorsement, endorsement: data.generatedText })
+      } else {
+        const errMsg = data.error || "Failed to generate AI response"
+        console.error('[AI Enhance Error] API returned error status:', errMsg)
+        
+        // Auto fallback to random template
+        const randomTpl = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+        setNewEndorsement({ ...newEndorsement, endorsement: randomTpl.text })
+        setAiError("AI Enhance is temporarily offline. We have automatically populated a professional template for you inside the message box below!")
+      }
+    } catch (error: any) {
+      const errMsg = error.message || "Failed to connect to AI service."
+      console.error('[AI Enhance Error] Connection or execution failed:', error)
+      
+      // Auto fallback to random template
+      const randomTpl = fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+      setNewEndorsement({ ...newEndorsement, endorsement: randomTpl.text })
+      setAiError("AI Enhance is temporarily offline. We have automatically populated a professional template for you inside the message box below!")
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   useEffect(() => {
     fetchEndorsements()
@@ -221,7 +313,11 @@ export default function EndorsementsSection() {
       // Create preview
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const originalBase64 = reader.result as string
+        compressProfileImage(originalBase64).then((compressed) => {
+          setImagePreview(compressed)
+          console.log('[Image Compression] Original size:', Math.round(originalBase64.length / 1024), 'KB, Compressed size:', Math.round(compressed.length / 1024), 'KB')
+        })
       }
       reader.readAsDataURL(file)
     }
@@ -358,9 +454,14 @@ export default function EndorsementsSection() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">Endorsement Submitted!</h3>
-                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                      Thank you for sharing your experience. Your endorsement has been sent for review and a confirmation email has been sent to you. It will appear on the website once approved.
-                    </p>
+                    <div className="space-y-3">
+                      <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                        Thank you for sharing your experience. Your endorsement has been sent for review and a confirmation email has been sent to you. It will appear on the website once approved.
+                      </p>
+                      <p className="text-amber-600 dark:text-amber-400 text-xs max-w-md mx-auto italic font-medium leading-relaxed">
+                        💡 Tip: If you don't receive the confirmation email in a few minutes, please check your **Spam** or **Junk** folder and mark it as "Not Spam" to receive future approval updates!
+                      </p>
+                    </div>
                     <button
                       onClick={() => { setSubmitSuccess(false); setIsAddModalOpen(false) }}
                       className="flex items-center gap-1 text-sm text-accent hover:text-accent/80 transition-colors font-medium mx-auto"
@@ -447,13 +548,50 @@ export default function EndorsementsSection() {
                     onChange={(e) => setNewEndorsement({ ...newEndorsement, endorsement: e.target.value })}
                     rows={5}
                     maxLength={1000}
-                    className="resize-none mt-2 border-accent/20 focus:border-accent p-3 sm:p-4 text-base leading-relaxed"
+                    className="resize-none mt-2 border-accent/20 focus-border-accent p-3 sm:p-4 text-base leading-relaxed"
                   />
-                  <div className="flex justify-end">
-                    <span className={`text-xs ${newEndorsement.endorsement.length >= 950 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
-                      {newEndorsement.endorsement.length}/1000
-                    </span>
+                  <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3.5 pt-1.5">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 text-xs bg-muted/50 dark:bg-muted/20 px-3.5 py-2 rounded-full border border-border/40 font-medium text-muted-foreground w-fit shadow-sm">
+                      <span className={`w-1.5 h-1.5 rounded-full ${newEndorsement.endorsement.length >= 950 ? 'bg-destructive animate-pulse' : 'bg-primary/60'}`} />
+                      <span className={newEndorsement.endorsement.length >= 950 ? 'text-destructive font-bold' : ''}>
+                        {newEndorsement.endorsement.length} / 1000 characters
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateAI}
+                      disabled={isGenerating || newEndorsement.endorsement.length === 0}
+                      className="w-full sm:w-auto rounded-full shadow-md bg-gradient-to-r from-violet-600/10 to-indigo-600/10 dark:from-violet-500/10 dark:to-indigo-500/10 hover:from-violet-600/20 hover:to-indigo-600/20 text-primary border border-primary/20 hover:border-primary/45 transition-all duration-300 group/btn pl-4 pr-5 h-9 flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:hover:from-violet-600/10 disabled:hover:to-indigo-600/10 cursor-pointer"
+                      title="Enhance your message with AI"
+                    >
+                      {isGenerating ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full" />
+                          <span>Generating...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <Sparkles className="h-4 w-4 text-violet-500 animate-pulse" />
+                          <span className="font-semibold text-sm">AI Enhance</span>
+                        </div>
+                      )}
+                    </Button>
                   </div>
+
+                  {aiError && (
+                    <div className="space-y-4 pt-2">
+                      {/* Premium Warning Alert Box */}
+                      <div className="bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-sm rounded-xl p-4 flex items-start gap-3 backdrop-blur-sm animate-fade-in-up">
+                        <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400 animate-pulse" />
+                        <div className="space-y-1">
+                          <p className="font-bold">AI Service Offline (Auto-Fallback Active)</p>
+                          <p className="text-xs font-medium leading-relaxed">{aiError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {!imageFile && newEndorsement.endorsement.length > 0 && (
