@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   title: "Saqlein Shaikh - Portfolio",
   description: "Personal portfolio of Saqlein Shaikh - Mendix Developer at Deloitte",
   generator: "v0.app",
+  icons: {
+    icon: "/favicon.png",
+  },
 }
 
 export default function RootLayout({

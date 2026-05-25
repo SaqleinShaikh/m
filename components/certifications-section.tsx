@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, RefObject } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Award, Trophy, Calendar, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
+import { Award, Trophy, Calendar, ExternalLink, ChevronLeft, ChevronRight, Eye, X } from "lucide-react"
 import { useAutoScroll } from "@/hooks/use-auto-scroll"
 
 interface Certification {
@@ -26,6 +26,8 @@ export default function CertificationsSection() {
   const [canScrollRightCerts, setCanScrollRightCerts] = useState(true)
   const [canScrollLeftAwards, setCanScrollLeftAwards] = useState(false)
   const [canScrollRightAwards, setCanScrollRightAwards] = useState(true)
+  const [activeImage, setActiveImage] = useState<string | null>(null)
+  const [activeTitle, setActiveTitle] = useState<string>("")
 
   useEffect(() => {
     fetch('/api/certifications')
@@ -149,10 +151,26 @@ export default function CertificationsSection() {
                 <div key={cert.id} className="flex-shrink-0 snap-start w-[85vw] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)]">
                   <Card
                     className="h-full group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer flex flex-col"
-                    onClick={() => openUrl(cert.credential_url)}
+                    onClick={() => {
+                      if (cert.image) {
+                        setActiveImage(cert.image);
+                        setActiveTitle(cert.title);
+                      } else if (cert.credential_url) {
+                        openUrl(cert.credential_url);
+                      }
+                    }}
                   >
                     <CardHeader className="p-0 shrink-0">
-                      <div className="relative overflow-hidden rounded-t-lg">
+                      <div 
+                        className="relative overflow-hidden rounded-t-lg cursor-zoom-in"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (cert.image) {
+                            setActiveImage(cert.image);
+                            setActiveTitle(cert.title);
+                          }
+                        }}
+                      >
                         <img
                           src={cert.image || "/placeholder.svg"}
                           alt={cert.title}
@@ -173,13 +191,36 @@ export default function CertificationsSection() {
                           <Calendar className="h-3.5 w-3.5" />
                           {cert.issue_date}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openUrl(cert.credential_url) }}
-                          className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium uppercase tracking-wider"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          View
-                        </button>
+                        
+                        <div className="flex items-center gap-3">
+                          {cert.image && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveImage(cert.image);
+                                setActiveTitle(cert.title);
+                              }}
+                              className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium uppercase tracking-wider"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              View
+                            </button>
+                          )}
+                          
+                          {cert.credential_url && cert.credential_url !== '#' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openUrl(cert.credential_url);
+                              }}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium uppercase tracking-wider"
+                              title="Verify online"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Verify
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -229,7 +270,12 @@ export default function CertificationsSection() {
                 <div key={award.id} className="flex-shrink-0 snap-start w-[85vw] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)]">
                   <Card
                     className="h-full group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer flex flex-col"
-                    onClick={() => openUrl(award.image)}
+                    onClick={() => {
+                      if (award.image) {
+                        setActiveImage(award.image);
+                        setActiveTitle(award.title);
+                      }
+                    }}
                   >
                     <CardHeader className="p-0 shrink-0">
                       <div className="relative overflow-hidden rounded-t-lg">
@@ -250,10 +296,16 @@ export default function CertificationsSection() {
 
                       <div className="flex justify-end pt-2 border-t border-border/50 mt-auto">
                         <button
-                          onClick={(e) => { e.stopPropagation(); openUrl(award.image) }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (award.image) {
+                              setActiveImage(award.image);
+                              setActiveTitle(award.title);
+                            }
+                          }}
                           className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors font-medium uppercase tracking-wider"
                         >
-                          <ExternalLink className="h-3 w-3" />
+                          <Eye className="h-3.5 w-3.5" />
                           View Award
                         </button>
                       </div>
@@ -273,6 +325,62 @@ export default function CertificationsSection() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox style helper */}
+      {activeImage && (
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes lightboxFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes lightboxScaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+          .animate-lightbox-fade {
+            animation: lightboxFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .animate-lightbox-scale {
+            animation: lightboxScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          }
+        `}} />
+      )}
+
+      {/* Premium Lightbox Modal for Certificate/Award Images */}
+      {activeImage && (
+        <div 
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-background/95 backdrop-blur-md p-4 cursor-zoom-out animate-lightbox-fade"
+          onClick={() => setActiveImage(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center animate-lightbox-scale">
+            {/* Close Button */}
+            <button 
+              onClick={() => setActiveImage(null)}
+              className="absolute -top-14 right-2 sm:right-0 bg-accent/20 hover:bg-accent/40 backdrop-blur-sm text-accent rounded-full p-2.5 transition-all focus:outline-none border border-accent/20 cursor-pointer"
+              aria-label="Close preview"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            {/* Image container */}
+            <div 
+              className="relative bg-card border border-accent/20 rounded-2xl p-2 sm:p-3 shadow-2xl overflow-hidden max-h-[78vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img 
+                src={activeImage} 
+                alt={activeTitle} 
+                className="max-w-full max-h-[74vh] object-contain rounded-lg select-none"
+              />
+            </div>
+            
+            {/* Caption */}
+            <div className="mt-4 text-center text-foreground font-serif font-semibold text-lg sm:text-xl drop-shadow-sm px-4">
+              {activeTitle}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

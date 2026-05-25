@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await supabaseAdmin
+    const { searchParams } = new URL(request.url);
+    const adminView = searchParams.get('admin') === 'true';
+
+    let query = supabaseAdmin
       .from('certifications')
-      .select('*')
-      .eq('visible', true)
-      .order('display_order', { ascending: true });
+      .select('*');
+
+    if (!adminView) {
+      query = query.eq('visible', true);
+    }
+
+    const { data, error } = await query.order('display_order', { ascending: true });
 
     if (error) throw error;
     return NextResponse.json(data);

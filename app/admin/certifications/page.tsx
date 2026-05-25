@@ -10,7 +10,48 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Trash2, Edit, Plus, ArrowLeft, Award, Trophy } from "lucide-react"
+import { Trash2, Edit, Plus, ArrowLeft, Award, Trophy, ImageIcon, Upload, X } from "lucide-react"
+
+const compressCertificateImage = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      const MAX_WIDTH = 1000
+      const MAX_HEIGHT = 1000
+      let width = img.width
+      let height = img.height
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width)
+          width = MAX_WIDTH
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width = Math.round((width * MAX_HEIGHT) / height)
+          height = MAX_HEIGHT
+        }
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      } else {
+        resolve(base64Str)
+      }
+    }
+    img.onerror = () => {
+      resolve(base64Str)
+    }
+    img.src = base64Str
+  })
+}
 
 interface Certification {
   id: string
@@ -55,7 +96,7 @@ export default function AdminCertificationsPage() {
 
   const fetchCertifications = async () => {
     try {
-      const res = await fetch('/api/certifications')
+      const res = await fetch('/api/certifications?admin=true')
       const data = await res.json()
       setCertifications(data)
     } catch (error) {
@@ -234,6 +275,35 @@ function CertificationForm({ item, onSave, onCancel }: {
   onCancel: () => void
 }) {
   const [formData, setFormData] = useState(item)
+  const [imagePreview, setImagePreview] = useState(item.image || "")
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
+        alert("Please upload a valid image file (JPG, PNG, or WebP)")
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB")
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        compressCertificateImage(base64).then((compressed) => {
+          setFormData(prev => ({ ...prev, image: compressed }))
+          setImagePreview(compressed)
+        })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: "" }))
+    setImagePreview("")
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -295,13 +365,50 @@ function CertificationForm({ item, onSave, onCancel }: {
         />
       </div>
 
-      <div>
-        <Label>Image URL</Label>
-        <Input
-          value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          placeholder="/certification.png"
-        />
+      <div className="space-y-3 p-5 rounded-2xl bg-muted/20 border border-muted-foreground/10">
+        <Label className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+          <ImageIcon className="w-4 h-4 text-primary" /> Certificate / Award Image
+        </Label>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mt-2">
+          <div className="relative group/avatar cursor-pointer">
+            <div className="w-28 h-20 rounded-xl border-2 border-dashed border-primary/40 flex items-center justify-center overflow-hidden bg-background/50 transition-all group-hover/avatar:border-primary/80 group-hover/avatar:bg-primary/5">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <Upload className="w-8 h-8 text-muted-foreground/40 group-hover/avatar:text-primary/60 transition-colors" />
+              )}
+            </div>
+          </div>
+          
+          <div className="flex-1 w-full space-y-2">
+            <Input
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              onChange={handleImageChange}
+              className="h-10 text-sm border-input/40 file:border-0 file:bg-primary/10 file:text-primary file:font-medium file:px-4 file:py-1 file:rounded-md file:mr-4 hover:file:bg-primary/20 cursor-pointer bg-background/50 shadow-sm rounded-xl w-full transition-all hover:border-primary/50"
+            />
+            {imagePreview && (
+              <Button type="button" variant="outline" size="sm" onClick={handleRemoveImage} className="w-fit text-xs h-8">
+                <X className="w-3.5 h-3.5 mr-1" /> Remove Image
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-1 pt-2">
+          <Label htmlFor="image-url" className="text-xs text-muted-foreground">Or paste image URL directly:</Label>
+          <Input
+            id="image-url"
+            placeholder="https://example.com/certificate.jpg"
+            value={formData.image && formData.image.startsWith('data:') ? '' : formData.image}
+            onChange={(e) => {
+              setFormData({ ...formData, image: e.target.value })
+              setImagePreview(e.target.value)
+            }}
+            className="h-9 text-sm rounded-xl"
+          />
+        </div>
       </div>
 
       <div>

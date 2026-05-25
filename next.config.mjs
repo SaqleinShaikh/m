@@ -28,8 +28,14 @@ const nextConfig = {
   },
 
   async redirects() {
-    // If in development mode, don't perform any redirects
-    if (process.env.NODE_ENV === 'development') {
+    // If running locally or in development, never perform production redirects
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_APP_URL?.includes('localhost') ||
+      process.env.NEXT_PUBLIC_BASE_URL?.includes('localhost') ||
+      process.env.NEXT_PUBLIC_APP_URL?.includes('127.0.0.1') ||
+      process.env.NEXT_PUBLIC_BASE_URL?.includes('127.0.0.1')
+    ) {
       return [];
     }
 
