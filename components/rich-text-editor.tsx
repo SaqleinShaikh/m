@@ -89,7 +89,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "Write
       // useEditor captured a stale closure value
       const latestContent = contentRef.current
       if (latestContent && latestContent !== '<p></p>' && editor.getHTML() !== latestContent) {
-        editor.commands.setContent(latestContent, false)
+        editor.commands.setContent(latestContent, { emitUpdate: false })
       }
     },
     onUpdate: ({ editor }) => {
@@ -116,7 +116,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "Write
     const currentHTML = editor.getHTML()
     // Only update if content actually differs
     if (content !== currentHTML) {
-      editor.commands.setContent(content || '', false)
+      editor.commands.setContent(content || '', { emitUpdate: false })
     }
   }, [content, editor])
 

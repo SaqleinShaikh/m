@@ -371,35 +371,40 @@ export async function POST(request: Request) {
     console.log('Endorsement inserted successfully:', data.id)
     const returnedData = { ...data, endorsement: data.testimonial }
     
-    // Send email notification to admin asynchronously (don't block response)
-    sendEndorsementNotification({
-      name: body.name,
-      email: body.email,
-      endorsement: body.endorsement,
-      designation: body.designation,
-      organization: body.organization,
-      image: body.image,
-      rating: 5,
-    }).catch(err => console.error('Failed to send notification in background:', err))
+    // Send email notification to admin and submitter (awaited to ensure delivery in serverless environment)
+    try {
+      await sendEndorsementNotification({
+        name: body.name,
+        email: body.email,
+        endorsement: body.endorsement,
+        designation: body.designation,
+        organization: body.organization,
+        image: body.image,
+        rating: 5,
+      })
+    } catch (err) {
+      console.error('Failed to send endorsement notification:', err)
+    }
     
-    // Also save to email_messages for notification in background (don't block response)
-    supabaseAdmin
-      .from('email_messages')
-      .insert({
-        type: 'endorsement',
-        from_name: body.name,
-        from_email: body.email,
-        message: body.endorsement,
-        read: false
-      })
-      .then(({ error: emailError }) => {
-        if (emailError) {
-          console.error('Error saving to email_messages in background:', emailError)
-        } else {
-          console.log('Successfully saved to email_messages in background')
-        }
-      })
-      .catch(err => console.error('Error in email_messages background promise:', err))
+    // Also save to email_messages for notification (awaited to ensure database insertion completes)
+    try {
+      const { error: emailError } = await supabaseAdmin
+        .from('email_messages')
+        .insert({
+          type: 'endorsement',
+          from_name: body.name,
+          from_email: body.email,
+          message: body.endorsement,
+          read: false
+        })
+      if (emailError) {
+        console.error('Error saving to email_messages:', emailError)
+      } else {
+        console.log('Successfully saved to email_messages')
+      }
+    } catch (err) {
+      console.error('Error saving to email_messages:', err)
+    }
     
     return NextResponse.json(returnedData, { status: 201 })
   } catch (error: any) {
@@ -447,11 +452,13 @@ export async function PUT(request: Request) {
     
     const updatedData = { ...data, endorsement: data.testimonial }
     
-    // Send approval notification email if endorsement was just approved
+    // Send approval notification email if endorsement was just approved (awaited to ensure delivery)
     if (wasApproved && data) {
-      sendApprovalNotification(updatedData).catch(err => 
-        console.error('Failed to send approval notification in background:', err)
-      )
+      try {
+        await sendApprovalNotification(updatedData)
+      } catch (err) {
+        console.error('Failed to send approval notification:', err)
+      }
     }
     
     return NextResponse.json(updatedData)
