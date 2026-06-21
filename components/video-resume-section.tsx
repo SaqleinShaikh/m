@@ -4,10 +4,12 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, Volume2, VolumeX, Maximize, Download } from "lucide-react"
+import ResumeRequestDialog from "./resume-request-dialog"
 
 export default function VideoResumeSection() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [isResumeRequestOpen, setIsResumeRequestOpen] = useState(false)
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying)
@@ -65,7 +67,7 @@ export default function VideoResumeSection() {
                       <span className="text-white text-sm">0:00 / 3:45</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="text-white hover:text-accent">
+                      <Button size="sm" variant="ghost" className="text-white hover:text-accent" onClick={() => setIsResumeRequestOpen(true)}>
                         <Download className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="ghost" className="text-white hover:text-accent">
@@ -124,7 +126,7 @@ export default function VideoResumeSection() {
               >
                 Get In Touch
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setIsResumeRequestOpen(true)}>
                 <Download className="h-4 w-4 mr-2" />
                 Download Resume
               </Button>
@@ -132,6 +134,7 @@ export default function VideoResumeSection() {
           </div>
         </div>
       </div>
+      <ResumeRequestDialog open={isResumeRequestOpen} onOpenChange={setIsResumeRequestOpen} />
     </section>
   )
 }

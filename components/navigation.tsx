@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Menu, ChevronDown, Download } from "lucide-react"
 import ThemeToggle from "./theme-toggle"
 import { useNavigationSettings } from "@/hooks/use-navigation-settings"
+import ResumeRequestDialog from "./resume-request-dialog"
 
 // Map section keys to navigation items
 const navigationMap = {
@@ -24,6 +25,7 @@ const navigationMap = {
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isResumeRequestOpen, setIsResumeRequestOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { getEnabledSections, loading } = useNavigationSettings()
@@ -118,14 +120,7 @@ export default function Navigation() {
             <ThemeToggle />
             <Button 
               className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-secondary transition-all duration-300 animate-glow"
-              onClick={() => {
-                const link = document.createElement('a');
-                link.href = '/Saqlein-Shaikh.pdf';
-                link.download = 'Saqlein-Shaikh-Resume.pdf';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
+              onClick={() => setIsResumeRequestOpen(true)}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Resume
@@ -160,12 +155,7 @@ export default function Navigation() {
                   size="sm" 
                   className="bg-gradient-to-r from-primary to-accent w-full"
                   onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = '/Saqlein-Shaikh.pdf';
-                    link.download = 'Saqlein-Shaikh-Resume.pdf';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    setIsResumeRequestOpen(true);
                     setIsOpen(false);
                   }}
                 >
@@ -177,6 +167,7 @@ export default function Navigation() {
           </div>
         )}
       </div>
+      <ResumeRequestDialog open={isResumeRequestOpen} onOpenChange={setIsResumeRequestOpen} />
     </nav>
   )
 }

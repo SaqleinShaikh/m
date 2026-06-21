@@ -60,6 +60,13 @@ export default function AdminDashboard() {
       color: "from-rose-500 to-orange-500"
     },
     {
+      title: "Resume Requests",
+      description: "Manage and approve requests to download your resume",
+      icon: FileText,
+      href: "/admin/resume-requests",
+      color: "from-blue-600 to-indigo-600"
+    },
+    {
       title: "Endorsements",
       description: "Manage and approve endorsements",
       icon: MessageSquare,
