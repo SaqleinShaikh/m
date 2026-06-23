@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { getEmailTransporter, getEmailFrom } from '@/lib/email-service';
 import { logEmailTrigger } from '@/lib/email-logger';
 
 export async function POST(request: Request) {
@@ -42,13 +42,7 @@ export async function POST(request: Request) {
 
     console.log('Creating email transporter...');
     // Create transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    const transporter = getEmailTransporter();
 
     // Test the connection
     console.log('Testing email connection...');
@@ -57,11 +51,12 @@ export async function POST(request: Request) {
 
     // Email to you (notification)
     const notificationEmail = {
-      from: `"Saqlein Shaikh | Portfolio" <${process.env.EMAIL_USER}>`,
+      from: getEmailFrom('Saqlein Shaikh | Portfolio Contact'),
       to: 'saqleinsheikh43@gmail.com',
       replyTo: email,
-      bcc: process.env.EMAIL_USER || undefined,
+      bcc: process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined,
       subject: `Portfolio Contact: Message from ${name}`,
+      text: `New Contact Form Message\n\nContact Details:\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}\n\nThis message was sent from your portfolio website contact form. You can reply directly to this email to respond to ${name}.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
@@ -91,10 +86,11 @@ export async function POST(request: Request) {
 
     // Auto-response email to the sender
     const autoResponseEmail = {
-      from: `"Saqlein Shaikh | Portfolio" <${process.env.EMAIL_USER}>`,
+      from: getEmailFrom('Saqlein Shaikh | Portfolio'),
       to: email,
-      bcc: process.env.EMAIL_USER || undefined,
+      bcc: process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined,
       subject: `Thank you for reaching out - Saqlein Shaikh`,
+      text: `Hi ${name},\n\nThank you for reaching out!\n\nI appreciate you taking the time to contact me through my portfolio website. Your message has been received and I'm excited to learn more about your inquiry.\n\nI review all messages personally and will get back to you as soon as possible, typically within 24-48 hours. In the meantime, feel free to visit my website at ${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://saqleinshaikh.in/'}.\n\nNeed immediate assistance?\n- Email: saqleinsheikh43@gmail.com\n- Phone: +91 88309 83065\n- LinkedIn: https://www.linkedin.com/in/saqlein-shaikh\n\nBest regards,\nSaqlein Shaikh\nMendix Developer | Deloitte`,
       html: `
         <!DOCTYPE html>
         <html lang="en">
@@ -132,7 +128,7 @@ export async function POST(request: Request) {
 
               <!-- Call-to-action button -->
               <div style="text-align: center; margin: 35px 0;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://your-portfolio-url.com'}" 
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://saqleinshaikh.in/'}" 
                    style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
                   Explore My Portfolio
                 </a>

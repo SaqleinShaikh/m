@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { getEmailTransporter, getEmailFrom } from '@/lib/email-service'
 import { logEmailTrigger } from '@/lib/email-logger'
 
 export async function POST(request: Request) {
@@ -22,25 +22,19 @@ export async function POST(request: Request) {
     const resetUrl = `${baseUrl}/loginlocal/reset-password?token=${resetToken}`
 
     // Configure email transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    })
+    const transporter = getEmailTransporter()
 
-    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
-    const bccEmail = process.env.EMAIL_USER || undefined
+    const bccEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined
     const subject = 'Password Reset Request - Portfolio Admin'
 
     // Send email
     try {
       await transporter.sendMail({
-        from: fromEmail,
+        from: getEmailFrom('Saqlein Shaikh | Portfolio Admin'),
         to: email,
         bcc: bccEmail,
         subject: subject,
+        text: `Hello,\n\nYou requested to reset your password for the Portfolio Admin Dashboard.\n\nPlease copy and paste this link into your browser to reset your password:\n${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nSaqlein Shaikh Portfolio`,
         html: `
           <!DOCTYPE html>
           <html>

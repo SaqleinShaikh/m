@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import nodemailer from 'nodemailer'
+import { getEmailTransporter, getEmailFrom } from '@/lib/email-service'
 import { logEmailTrigger } from '@/lib/email-logger'
 import path from 'path'
 
@@ -12,24 +12,21 @@ async function sendResumeRequestNotification(requestData: {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-    })
+    const transporter = getEmailTransporter()
 
     const submittedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
     const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
     const adminLoginUrl = `${portfolioUrl}/loginlocal`
-    const fromName = 'Saqlein Shaikh | Portfolio'
-    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
-    const bccEmail = process.env.EMAIL_USER || undefined
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+    const bccEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined
 
     // Send notification to Admin
     await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+      from: getEmailFrom('Saqlein Shaikh | Portfolio'),
       to: 'saqleinsheikh43@gmail.com',
       bcc: bccEmail,
       subject: `New Resume Download Request from ${requestData.name}`,
+      text: `New Resume Download Request\n\nA user has submitted a request to download your resume.\n\nDetails:\nName: ${requestData.name}\nEmail: ${requestData.email}\nReason for Request: "${requestData.reason}"\nSubmitted At: ${submittedAt}\n\nPlease review this request in the admin dashboard:\n${adminLoginUrl}`,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,7 +135,7 @@ async function sendResumeRequestNotification(requestData: {
   } catch (sendErr: any) {
     console.error('Failed to send admin resume request email:', sendErr)
     try {
-      const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+      const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
       await logEmailTrigger({
         sender: fromEmail,
         recipient: 'saqleinsheikh43@gmail.com',
@@ -161,24 +158,21 @@ async function sendResumeApprovedNotification(requestData: {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-    })
+    const transporter = getEmailTransporter()
 
     const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-    const fromName = 'Saqlein Shaikh | Portfolio'
-    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
-    const bccEmail = process.env.EMAIL_USER || undefined
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+    const bccEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined
 
     const resumePath = path.join(process.cwd(), 'public', 'Saqlein-Shaikh.pdf')
 
     // Send Resume PDF to Requester
     await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+      from: getEmailFrom('Saqlein Shaikh | Portfolio'),
       to: requestData.email,
       bcc: bccEmail,
       subject: `Your Resume Request is Approved! – Saqlein Shaikh`,
+      text: `Hi ${requestData.name},\n\nGreat news! Your request to download my resume has been approved. I have attached the PDF version of my resume to this email.\n\nIf you have any further questions or would like to discuss potential opportunities, feel free to visit my website at ${portfolioUrl} or reply directly to this email.\n\nBest regards,\nSaqlein Shaikh\nMendix Developer · Deloitte`,
       attachments: [
         {
           filename: 'Saqlein-Shaikh-Resume.pdf',
@@ -263,7 +257,7 @@ async function sendResumeApprovedNotification(requestData: {
   } catch (sendErr: any) {
     console.error('Failed to send resume approval email:', sendErr)
     try {
-      const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+      const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
       await logEmailTrigger({
         sender: fromEmail,
         recipient: requestData.email,

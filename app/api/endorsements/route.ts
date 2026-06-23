@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import nodemailer from 'nodemailer'
+import { getEmailTransporter, getEmailFrom } from '@/lib/email-service'
 import { logEmailTrigger } from '@/lib/email-logger'
 
 function processEmailImage(image: string | undefined): { attachments: any[], imageSrc: string, hasImage: boolean } {
@@ -80,10 +80,7 @@ async function sendEndorsementNotification(endorsement: {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-    })
+    const transporter = getEmailTransporter()
 
     const submittedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
     const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
@@ -93,16 +90,17 @@ async function sendEndorsementNotification(endorsement: {
     const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
     const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
-    const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
-    const bccEmail = process.env.EMAIL_USER || undefined
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+    const bccEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined
 
     // ── Admin notification ──────────────────────────────────────────────────
     try {
       await transporter.sendMail({
-        from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+        from: getEmailFrom('Saqlein Shaikh | Portfolio'),
         to: 'saqleinsheikh43@gmail.com',
         bcc: bccEmail,
         subject: `New Endorsement Request from ${endorsement.name}`,
+        text: `New Endorsement Request\n\nA new endorsement has been submitted and is awaiting your approval.\n\nDetails:\nName: ${endorsement.name}\nDesignation: ${endorsement.designation || 'N/A'}\nOrganization: ${endorsement.organization || 'N/A'}\nRating: ${endorsement.rating || 5} stars\nEndorsement: "${endorsement.endorsement}"\nSubmitted At: ${submittedAt}\n\nPlease review this endorsement in the admin dashboard:\n${adminLoginUrl}`,
         attachments,
         html: `<!DOCTYPE html>
 <html lang="en">
@@ -212,10 +210,11 @@ async function sendEndorsementNotification(endorsement: {
     // ── Confirmation email to submitter ─────────────────────────────────────
     try {
       await transporter.sendMail({
-        from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+        from: getEmailFrom('Saqlein Shaikh | Portfolio'),
         to: endorsement.email,
         bcc: bccEmail,
         subject: `We received your endorsement – Saqlein Shaikh`,
+        text: `Thank you, ${endorsement.name}!\n\nYour endorsement has been successfully received and is currently under review. I personally review every submission to ensure quality and authenticity.\n\nOnce approved, your endorsement will appear on my portfolio website for visitors to see. You will receive an email notification when it goes live!\n\nYour Submission:\nName: ${endorsement.name}\nDesignation/Org: ${endorsement.designation || ''} ${endorsement.organization ? `· ${endorsement.organization}` : ''}\nEndorsement: "${endorsement.endorsement}"\n\nVisit my portfolio: ${portfolioUrl}`,
         attachments,
         html: `<!DOCTYPE html>
 <html lang="en">
@@ -479,10 +478,7 @@ async function sendApprovalNotification(endorsement: {
 }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-  })
+  const transporter = getEmailTransporter()
 
   const portfolioUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
   const fromName = 'Saqlein Shaikh | Portfolio'
@@ -490,15 +486,16 @@ async function sendApprovalNotification(endorsement: {
   const { attachments, imageSrc, hasImage } = processEmailImage(endorsement.image)
   const cardHtml = getEmailEndorsementCard(endorsement, imageSrc, hasImage)
 
-  const fromEmail = process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
-  const bccEmail = process.env.EMAIL_USER || undefined
+  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'saqleinsheikh43@gmail.com'
+  const bccEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined
 
   try {
     await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+      from: getEmailFrom('Saqlein Shaikh | Portfolio'),
       to: endorsement.email,
       bcc: bccEmail,
       subject: `Your endorsement is now live! – Saqlein Shaikh`,
+      text: `Hi ${endorsement.name},\n\nGreat news! Your endorsement has been reviewed and approved. It is now live on my portfolio website.\n\nThank you so much for taking the time to share your experience.\n\nYou can view it live here: ${portfolioUrl}/#endorsements\n\nBest regards,\nSaqlein Shaikh\nMendix Developer · Deloitte`,
       attachments,
       html: `<!DOCTYPE html>
 <html lang="en">
