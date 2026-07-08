@@ -15,11 +15,16 @@ interface Experience {
   is_current: boolean
 }
 
-export default function ExperienceSection() {
-  const [experiences, setExperiences] = useState<Experience[]>([])
-  const [loading, setLoading] = useState(true)
+export default function ExperienceSection({ data }: { data?: Experience[] }) {
+  const [experiences, setExperiences] = useState<Experience[]>(data || [])
+  const [loading, setLoading] = useState(!data)
 
   useEffect(() => {
+    if (data) {
+      setExperiences(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/experience')
       .then(res => res.json())
       .then(data => {
@@ -31,7 +36,7 @@ export default function ExperienceSection() {
         setExperiences([])
         setLoading(false)
       })
-  }, [])
+  }, [data])
 
   if (loading) {
     return (

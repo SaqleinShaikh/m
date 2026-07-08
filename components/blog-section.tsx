@@ -8,6 +8,7 @@ import { Calendar, Clock, Heart, MessageCircle, ChevronLeft, ChevronRight } from
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAutoScroll } from "@/hooks/use-auto-scroll"
+import { usePageTransition } from "@/components/page-transition-loader"
 
 interface Blog {
   id: string
@@ -26,15 +27,21 @@ interface Blog {
   comments_count: number
 }
 
-export default function BlogSection() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
+export default function BlogSection({ data }: { data?: Blog[] }) {
+  const [blogs, setBlogs] = useState<Blog[]>(data || [])
+  const [loading, setLoading] = useState(!data)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { startTransition } = usePageTransition()
 
   useEffect(() => {
+    if (data) {
+      setBlogs(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/blogs')
       .then(res => res.json())
       .then(data => {
@@ -46,7 +53,7 @@ export default function BlogSection() {
         setBlogs([])
         setLoading(false)
       })
-  }, [])
+  }, [data])
 
   const checkScroll = () => {
     const el = scrollRef.current
@@ -87,68 +94,69 @@ export default function BlogSection() {
     )
   }
 
+  const handleBlogClick = (slug: string) => {
+    startTransition()
+    router.push(`/blogs/${slug}`)
+  }
+
   const BlogCard = ({ blog }: { blog: Blog }) => (
-    <Card
-      className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 cursor-pointer h-full flex flex-col"
-      onClick={() => router.push(`/blogs/${blog.slug}`)}
+    <div
+      className="block h-full cursor-pointer"
+      onClick={() => handleBlogClick(blog.slug)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          router.push(`/blogs/${blog.slug}`)
-        }
-      }}
-      aria-label={`Open blog ${blog.title}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBlogClick(blog.slug) }}
+      aria-label={`Open blog: ${blog.title}`}
     >
-      <CardHeader className="p-0">
-        <div className="relative overflow-hidden rounded-t-lg">
-          <img
-            src={blog.image || "/placeholder.svg"}
-            alt={blog.title}
-            className="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs">{blog.category}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 flex flex-col flex-1">
-        <CardTitle className="text-base sm:text-lg font-serif text-primary mb-2 line-clamp-2 hover:text-accent">
-          <Link href={`/blogs/${blog.slug}`}>{blog.title}</Link>
-        </CardTitle>
-        <p className="text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-3 flex-1">{blog.excerpt}</p>
+      <Card
+        className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 h-full flex flex-col"
+      >
+        <CardHeader className="p-0">
+          <div className="relative overflow-hidden rounded-t-lg">
+            <img
+              src={blog.image || "/placeholder.svg"}
+              alt={blog.title}
+              className="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+            <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs">{blog.category}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 flex flex-col flex-1">
+          <CardTitle className="text-base sm:text-lg font-serif text-primary mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+            {blog.title}
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-3 flex-1">{blog.excerpt}</p>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {new Date(blog.published_date).toLocaleDateString()}
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {new Date(blog.published_date).toLocaleDateString()}
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {blog.read_time}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {blog.read_time}
-          </div>
-        </div>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-3 border-t border-border">
-          <div className="flex items-center gap-1">
-            <Heart className="h-3 w-3" />
-            {blog.likes_count || 0}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground pt-3 border-t border-border">
+            <div className="flex items-center gap-1">
+              <Heart className="h-3 w-3" />
+              {blog.likes_count || 0}
+            </div>
+            <div className="flex items-center gap-1">
+              <MessageCircle className="h-3 w-3" />
+              {blog.comments_count || 0}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <MessageCircle className="h-3 w-3" />
-            {blog.comments_count || 0}
-          </div>
-        </div>
 
-        <div className="flex justify-end mt-3">
-          <button
-            onClick={(e) => { e.stopPropagation(); router.push(`/blogs/${blog.slug}`) }}
-            className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors font-medium"
-          >
-            Read More →
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end mt-3">
+            <span className="flex items-center gap-1 text-xs text-accent group-hover:text-accent/80 transition-colors font-medium">
+              Read More →
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 
   return (
@@ -208,11 +216,16 @@ export default function BlogSection() {
         </div>
 
         <div className="text-center">
-          <Link href="/blogs">
-            <Button variant="outline" size="lg">
-              Show All Blogs
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              startTransition()
+              router.push('/blogs')
+            }}
+          >
+            Show All Blogs
+          </Button>
         </div>
       </div>
     </section>

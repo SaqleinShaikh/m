@@ -20,7 +20,11 @@ export async function GET(request: Request) {
         }
         throw error
       }
-      return NextResponse.json(data)
+      return NextResponse.json(data, {
+        headers: {
+          'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+        }
+      })
     } else {
       // Fetch all posts but exclude heavy content block
       const { data, error } = await supabase
@@ -29,7 +33,11 @@ export async function GET(request: Request) {
         .order('created_at', { ascending: false })
         
       if (error) throw error
-      return NextResponse.json(data)
+      return NextResponse.json(data, {
+        headers: {
+          'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+        }
+      })
     }
   } catch (error) {
     console.error('Error fetching blogs:', error)

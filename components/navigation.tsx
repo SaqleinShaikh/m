@@ -7,6 +7,7 @@ import { Menu, ChevronDown, Download } from "lucide-react"
 import ThemeToggle from "./theme-toggle"
 import { useNavigationSettings } from "@/hooks/use-navigation-settings"
 import ResumeRequestDialog from "./resume-request-dialog"
+import { usePageTransition } from "@/components/page-transition-loader"
 
 // Map section keys to navigation items
 const navigationMap = {
@@ -29,6 +30,7 @@ export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
   const { getEnabledSections, loading } = useNavigationSettings()
+  const { startTransition } = usePageTransition()
 
   const handleNav = (href: string) => {
     const onHome = pathname === "/" || pathname.startsWith("/#")
@@ -42,9 +44,13 @@ export default function Navigation() {
         el.scrollIntoView({ behavior: "smooth", block: "start" })
         return
       }
+      // Not found on page — navigate
+      startTransition()
       router.push(`/${href}`)
       return
     }
+    // Not on home — always navigate
+    startTransition()
     router.push(href === "#home" ? "/" : `/${href}`)
   }
 

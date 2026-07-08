@@ -169,9 +169,9 @@ const fallbackTemplates = [
   }
 ]
 
-export default function EndorsementsSection() {
-  const [endorsements, setEndorsements] = useState<Endorsement[]>([])
-  const [loading, setLoading] = useState(true)
+export default function EndorsementsSection({ data }: { data?: Endorsement[] }) {
+  const [endorsements, setEndorsements] = useState<Endorsement[]>(data || [])
+  const [loading, setLoading] = useState(!data)
   const [showAllEndorsements, setShowAllEndorsements] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedOrganization, setSelectedOrganization] = useState("All")
@@ -237,8 +237,13 @@ export default function EndorsementsSection() {
   }
 
   useEffect(() => {
+    if (data) {
+      setEndorsements(data)
+      setLoading(false)
+      return
+    }
     fetchEndorsements()
-  }, [])
+  }, [data])
 
   const fetchEndorsements = async () => {
     try {

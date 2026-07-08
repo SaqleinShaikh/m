@@ -10,7 +10,11 @@ export async function GET() {
       .order('display_order', { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+      }
+    });
   } catch (error) {
     console.error('Error fetching projects:', error);
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });

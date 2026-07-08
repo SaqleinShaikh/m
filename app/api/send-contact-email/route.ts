@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       to: email,
       bcc: process.env.EMAIL_FROM || process.env.EMAIL_USER || undefined,
       subject: `Thank you for reaching out - Saqlein Shaikh`,
-      text: `Hi ${name},\n\nThank you for reaching out!\n\nI appreciate you taking the time to contact me through my portfolio website. Your message has been received and I'm excited to learn more about your inquiry.\n\nI review all messages personally and will get back to you as soon as possible, typically within 24-48 hours. In the meantime, feel free to visit my website at ${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://saqleinshaikh.in/'}.\n\nNeed immediate assistance?\n- Email: saqleinsheikh43@gmail.com\n- Phone: +91 88309 83065\n- LinkedIn: https://www.linkedin.com/in/saqlein-shaikh\n\nBest regards,\nSaqlein Shaikh\nMendix Developer | Deloitte`,
+      text: `Hi ${name},\n\nThank you for reaching out!\n\nI appreciate you taking the time to contact me through my portfolio website. Your message has been received and I'm excited to learn more about your inquiry.\n\nI review all messages personally and will get back to you as soon as possible, typically within 24-48 hours. In the meantime, feel free to visit my website at ${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://saqleinshaikh.in/'}.\n\nNeed immediate assistance?\n- Email: saqleinsheikh43@gmail.com\n- LinkedIn: https://www.linkedin.com/in/saqlein-shaikh\n\nBest regards,\nSaqlein Shaikh\nMendix Developer | Deloitte`,
       html: `
         <!DOCTYPE html>
         <html lang="en">
@@ -155,7 +155,6 @@ export async function POST(request: Request) {
                 </h4>
                 <p style="color: #4a5568; margin: 0; font-size: 14px;">
                   📧 Email: saqleinsheikh43@gmail.com<br>
-                  📱 Phone: +91 88309 83065<br>
                   💼 LinkedIn: <a href="https://www.linkedin.com/in/saqlein-shaikh" style="color: #667eea; text-decoration: none;">linkedin.com/in/saqlein-shaikh</a>
                 </p>
               </div>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Mail, Phone, Linkedin, Send, MapPin, Clock, CheckCircle } from "lucide-react"
+import { Mail, Linkedin, Send, MapPin, Clock, CheckCircle } from "lucide-react"
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -116,18 +116,6 @@ export default function ContactSection() {
 
               <div className="flex items-center gap-4">
                 <div className="bg-accent/10 p-3 rounded-full">
-                  <Phone className="h-6 w-6 text-accent" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-primary">Phone</h4>
-                  <a href="tel:+918830983065" className="text-muted-foreground hover:text-accent transition-colors">
-                    +91 88309 83065
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="bg-accent/10 p-3 rounded-full">
                   <Linkedin className="h-6 w-6 text-accent" />
                 </div>
                 <div>
@@ -149,7 +137,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-primary">Location</h4>
-                  <p className="text-muted-foreground">Nashik, Maharashtra, India</p>
+                  <p className="text-muted-foreground">Pune, Maharashtra, India</p>
                 </div>
               </div>
 

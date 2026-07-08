@@ -25,7 +25,12 @@ export async function GET(request: Request) {
     console.log('Navigation settings fetched:', data?.length || 0, 'items')
     console.log('Settings data:', data)
 
-    return NextResponse.json(data || [])
+    const headers: Record<string, string> = {}
+    if (!admin) {
+      headers['Cache-Control'] = 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+    }
+
+    return NextResponse.json(data || [], { headers })
   } catch (error) {
     console.error('Error fetching navigation settings:', error)
     return NextResponse.json({ error: 'Failed to fetch navigation settings' }, { status: 500 })

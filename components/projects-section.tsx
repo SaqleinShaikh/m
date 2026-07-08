@@ -20,15 +20,20 @@ interface Project {
   github_url: string
 }
 
-export default function ProjectsSection() {
-  const [projectsData, setProjectsData] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+export default function ProjectsSection({ data }: { data?: Project[] }) {
+  const [projectsData, setProjectsData] = useState<Project[]>(data || [])
+  const [loading, setLoading] = useState(!data)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (data) {
+      setProjectsData(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/projects')
       .then(res => res.json())
       .then(data => {
@@ -40,7 +45,7 @@ export default function ProjectsSection() {
         setProjectsData([])
         setLoading(false)
       })
-  }, [])
+  }, [data])
 
   const checkScroll = () => {
     const el = scrollRef.current

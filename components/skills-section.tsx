@@ -85,16 +85,21 @@ const LEGEND = [
 ]
 
 /* ── Main Section ──────────────────────────────────────────────── */
-export default function SkillsSection() {
-  const [skills, setSkills] = useState<Skill[]>([])
-  const [loading, setLoading] = useState(true)
+export default function SkillsSection({ data }: { data?: Skill[] }) {
+  const [skills, setSkills] = useState<Skill[]>(data || [])
+  const [loading, setLoading] = useState(!data)
 
   useEffect(() => {
+    if (data) {
+      setSkills(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/skills')
       .then(res => res.json())
       .then(data => { setSkills(Array.isArray(data) ? data : []); setLoading(false) })
       .catch(() => { setSkills([]); setLoading(false) })
-  }, [])
+  }, [data])
 
   if (loading) {
     return (

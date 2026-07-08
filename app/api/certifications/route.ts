@@ -17,7 +17,11 @@ export async function GET(request: Request) {
     const { data, error } = await query.order('display_order', { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json(data);
+    const headers: Record<string, string> = {}
+    if (!adminView) {
+      headers['Cache-Control'] = 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+    }
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Error fetching certifications:', error);
     return NextResponse.json({ error: 'Failed to fetch certifications' }, { status: 500 });

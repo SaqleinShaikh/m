@@ -333,7 +333,12 @@ export async function GET(request: Request) {
       endorsement: item.testimonial // map DB column to frontend name
     })) || []
 
-    return NextResponse.json(mappedData)
+    const headers: Record<string, string> = {}
+    if (!adminView) {
+      headers['Cache-Control'] = 'public, max-age=10, s-maxage=60, stale-while-revalidate=600'
+    }
+
+    return NextResponse.json(mappedData, { headers })
   } catch (error) {
     console.error('Error fetching endorsements:', error)
     return NextResponse.json({ error: 'Failed to fetch endorsements' }, { status: 500 })

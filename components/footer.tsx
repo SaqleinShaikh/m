@@ -1,14 +1,41 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Heart, Code, Coffee } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useNavigationSettings } from "@/hooks/use-navigation-settings"
+import { getSocialIcon } from "@/lib/social-icons"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
   const router = useRouter()
   const pathname = usePathname()
   const { getEnabledSections } = useNavigationSettings()
+
+  const [socialLinks, setSocialLinks] = useState<any[]>([
+    { id: 'linkedin', href: "https://www.linkedin.com/in/saqlein-shaikh", label: "LinkedIn" },
+    { id: 'github', href: "https://github.com/saqleinshaikh", label: "GitHub" },
+  ])
+
+  useEffect(() => {
+    fetch('/api/social-links')
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data === 'object' && !data.error) {
+          const linksArray = Object.entries(data)
+            .filter(([_, url]) => url && url !== "#")
+            .map(([platform, url]) => ({
+              id: platform,
+              href: url as string,
+              label: platform.charAt(0).toUpperCase() + platform.slice(1)
+            }))
+          if (linksArray.length > 0) {
+            setSocialLinks(linksArray)
+          }
+        }
+      })
+      .catch(err => console.error("Error fetching footer social links:", err))
+  }, [])
 
   const handleNavigation = (sectionId: string) => {
     // If we're on a blog page, navigate to home first
@@ -48,6 +75,23 @@ export default function Footer() {
             <p className="text-primary-foreground/80 leading-relaxed">
               Passionate Mendix Developer creating innovative digital solutions that drive business transformation.
             </p>
+            <div className="flex items-center space-x-4 pt-2">
+              {socialLinks.map((social) => {
+                const IconComp = getSocialIcon(social.id)
+                return (
+                  <a
+                    key={social.id}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-foreground/80 hover:text-primary-foreground transition-colors hover:scale-110 transform duration-300"
+                    aria-label={social.label}
+                  >
+                    <IconComp className="h-5 w-5" />
+                  </a>
+                )
+              })}
+            </div>
           </div>
 
           {/* Middle Section - Quick Links */}
@@ -76,12 +120,7 @@ export default function Footer() {
                   saqleinsheikh43@gmail.com
                 </a>
               </p>
-              <p className="text-primary-foreground/80">
-                <strong>Phone:</strong>{" "}
-                <a href="tel:+919876543210" className="hover:text-primary-foreground transition-colors">
-                  +91 88309 83065 
-                </a>
-              </p>
+
               <p className="text-primary-foreground/80">
                 <strong>Location:</strong> Pune, Maharashtra, India
               </p>

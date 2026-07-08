@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Heart, MessageCircle, Send } from "lucide-react"
 import EmailPromptDialog from "@/components/email-prompt-dialog"
+import { usePageTransition } from "@/components/page-transition-loader"
 
 interface Blog {
   id: string
@@ -51,7 +52,11 @@ export default function BlogDetailPage() {
     comment: ""
   })
 
+  const { endTransition } = usePageTransition()
+
   useEffect(() => {
+    window.scrollTo(0, 0)
+    endTransition() // clear any incoming page transition overlay
     Promise.all([
       fetch(`/api/blogs?slug=${slug}`).then(res => res.ok ? res.json() : null),
       fetch('/api/blogs').then(res => res.ok ? res.json() : [])

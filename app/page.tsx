@@ -15,32 +15,116 @@ import ContactSection from "@/components/contact-section"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Coffee, ArrowDown, Github, Linkedin, Instagram } from "lucide-react"
-import { XIcon } from "@/components/x-icon"
+import { Coffee, ArrowDown } from "lucide-react"
 import { useNavigationSettings } from "@/hooks/use-navigation-settings"
+import { getSocialIcon } from "@/lib/social-icons"
+import { usePageTransition } from "@/components/page-transition-loader"
 
 const defaultSocialLinks = [
-  { id: 'linkedin', icon: Linkedin, href: "https://www.linkedin.com/in/saqlein-shaikh", label: "LinkedIn", color: "hover:text-blue-400" },
-  { id: 'github', icon: Github, href: "https://github.com/saqleinshaikh", label: "GitHub", color: "hover:text-purple-400" },
-  { id: 'twitter', icon: XIcon, href: "#", label: "X (Twitter)", color: "hover:text-cyan-400" },
-  { id: 'instagram', icon: Instagram, href: "#", label: "Instagram", color: "hover:text-pink-400" },
+  { id: 'linkedin', href: "https://www.linkedin.com/in/saqlein-shaikh", label: "LinkedIn" },
+  { id: 'github', href: "https://github.com/saqleinshaikh", label: "GitHub" },
 ]
 
 export default function HomePage() {
-  const { isEnabled, loading } = useNavigationSettings()
   const [socialLinks, setSocialLinks] = useState(defaultSocialLinks)
-  const [linksLoading, setLinksLoading] = useState(true)
   const [showLoader, setShowLoader] = useState(true)
   const [animatingOut, setAnimatingOut] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [statusText, setStatusText] = useState("Initializing connection...")
 
-  // Trigger smooth transition out when API is done loading
+  const [fetchedData, setFetchedData] = useState<any>({
+    settings: [],
+    skills: [],
+    projects: [],
+    experience: [],
+    endorsements: [],
+    education: [],
+    certifications: [],
+    blogs: [],
+  })
+
+  const { endTransition } = usePageTransition()
+
+  // Start all fetches in parallel
   useEffect(() => {
-    if (!loading) {
-      // Small requestAnimationFrame delay prevents React batching glitches
-      requestAnimationFrame(() => {
+    endTransition() // clear any incoming navigation overlay
+    const totalApis = 9
+    let completed = 0
+
+    const updateProgress = (label: string) => {
+      completed += 1
+      const pct = Math.round((completed / totalApis) * 100)
+      setProgress(pct)
+      
+      if (pct === 100) {
+        setStatusText("Ready!")
+      } else {
+        setStatusText(`Retrieved ${label}...`)
+      }
+    }
+
+    const fetchItem = async (key: string, url: string, label: string, fallback: any) => {
+      try {
+        const res = await fetch(url)
+        if (!res.ok) {
+          console.warn(`Non-ok response for ${key}: ${res.status}`)
+          setFetchedData((prev: any) => ({ ...prev, [key]: fallback }))
+          return
+        }
+        const data = await res.json()
+        setFetchedData((prev: any) => ({ ...prev, [key]: data }))
+      } catch (err) {
+        console.warn(`Failed to fetch ${key}:`, err)
+        setFetchedData((prev: any) => ({ ...prev, [key]: fallback }))
+      } finally {
+        updateProgress(label)
+      }
+    }
+
+    const fetchSocialLinks = async () => {
+      try {
+        const res = await fetch('/api/social-links')
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`)
+        const data = await res.json()
+        if (data && typeof data === 'object') {
+          const linksArray = Object.entries(data)
+            .filter(([_, url]) => url && url !== "#")
+            .map(([platform, url]) => ({
+              id: platform,
+              href: url as string,
+              label: platform.charAt(0).toUpperCase() + platform.slice(1)
+            }))
+          if (linksArray.length > 0) {
+            setSocialLinks(linksArray)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch social links:', err)
+      } finally {
+        updateProgress('social links')
+      }
+    }
+
+    // Trigger parallel fetches
+    fetchItem('settings', '/api/navigation-settings', 'navigation settings', [])
+    fetchSocialLinks()
+    fetchItem('skills', '/api/skills', 'skills inventory', [])
+    fetchItem('projects', '/api/projects', 'projects', [])
+    fetchItem('experience', '/api/experience', 'experience history', [])
+    fetchItem('endorsements', '/api/endorsements', 'testimonials', [])
+    fetchItem('education', '/api/education', 'education info', [])
+    fetchItem('certifications', '/api/certifications', 'certifications', [])
+    fetchItem('blogs', '/api/blogs', 'blog articles', [])
+  }, [])
+
+  // Trigger smooth transition out when progress hits 100%
+  useEffect(() => {
+    if (progress === 100) {
+      const animTimer = setTimeout(() => {
         setAnimatingOut(true)
-      })
-      const timer = setTimeout(() => {
+      }, 400) // Brief hold at 100% for smooth visuals
+
+      const hideTimer = setTimeout(() => {
         setShowLoader(false)
         
         // Ensure direct hash links jump correctly after dynamic components render
@@ -53,24 +137,31 @@ export default function HomePage() {
             }
           }, 100)
         }
-      }, 1000) // matches transition duration
-      return () => clearTimeout(timer)
-    }
-  }, [loading])
+      }, 1400) // Matches opacity fadeout transition duration (1000ms)
 
-  useEffect(() => {
-    fetch('/api/social-links')
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          setSocialLinks(prev => prev.map(link => 
-            data[link.id] ? { ...link, href: data[link.id] } : link
-          ))
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLinksLoading(false))
-  }, [])
+      return () => {
+        clearTimeout(animTimer)
+        clearTimeout(hideTimer)
+      }
+    }
+  }, [progress])
+
+  const isEnabled = (sectionKey: string) => {
+    // If still loading, don't render sections
+    if (progress < 100) {
+      return false
+    }
+    
+    const settings = fetchedData.settings
+    if (!settings || settings.length === 0) {
+      // Default enabled sections (video disabled by default)
+      const defaultEnabled = ['home', 'experience', 'skills', 'projects', 'education', 'certifications', 'blogs', 'endorsements', 'contact']
+      return defaultEnabled.includes(sectionKey)
+    }
+    
+    const setting = settings.find((s: any) => s.section_key === sectionKey)
+    return setting ? setting.enabled : false
+  }
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -91,32 +182,72 @@ export default function HomePage() {
             }`} 
           />
           
-          {/* Animated SS Circle Container */}
+          {/* Redesigned Progress Circle Container */}
           <div 
-            className={`fixed z-[101] pointer-events-none flex items-center justify-center transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`fixed inset-0 z-[101] pointer-events-none flex flex-col items-center justify-center transition-all duration-[1000ms] ease-in-out ${
               animatingOut 
-                ? "top-8 left-4 sm:left-6 lg:left-8 -translate-x-[0%] -translate-y-[50%] scale-[0.35] opacity-0" 
-                : "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] scale-100 opacity-100"
+                ? "opacity-0 scale-95" 
+                : "opacity-100 scale-100"
             }`}
-            style={{ willChange: "transform, top, left, opacity" }}
           >
-            {/* Elegant, colorful, and premium spinning rings */}
-            <div className="w-40 h-40 sm:w-48 sm:h-48 relative flex items-center justify-center">
+            <div className="w-48 h-48 relative flex items-center justify-center">
               {/* Subtle background glow pulsing behind the circle */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 blur-xl animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/10 via-accent/20 to-secondary/15 blur-xl animate-pulse"></div>
               
               {/* Outer static framing ring */}
-              <div className="absolute inset-2 rounded-full border border-primary/20 bg-background/50 backdrop-blur-md"></div>
+              <div className="absolute inset-2 rounded-full border border-primary/10 bg-background/60 backdrop-blur-md"></div>
               
-              {/* Fast interior primary color ring */}
-              <div className="absolute inset-[10px] rounded-full border-t-2 border-r-2 border-primary/80 animate-[spin_2.5s_linear_infinite] shadow-[0_0_15px_rgba(var(--primary),0.3)]"></div>
+              {/* SVG Progress Circle */}
+              <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 160 160">
+                {/* Background track */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  className="stroke-muted/40 fill-none"
+                  strokeWidth="5"
+                />
+                {/* Active progress track */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeDasharray={439.8}
+                  strokeDashoffset={439.8 - (progress / 100) * 439.8}
+                  className="transition-all duration-300 ease-out"
+                  style={{
+                    filter: "drop-shadow(0 0 8px var(--accent))"
+                  }}
+                />
+              </svg>
               
-              {/* Slower reverse accent ring */}
-              <div className="absolute inset-[18px] rounded-full border-b-2 border-l-2 border-accent/80 animate-[spin_3.5s_linear_infinite_reverse] shadow-[0_0_15px_rgba(var(--accent),0.3)]"></div>
+              {/* Center percentage value */}
+              <div className="absolute inset-[32px] rounded-full bg-background/95 flex items-center justify-center shadow-lg dark:shadow-[inset_0_0_15px_rgba(var(--primary),0.1)]">
+                <span className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                  {progress}%
+                </span>
+              </div>
+            </div>
+            
+            {/* Loading text and linear bar */}
+            <div className="mt-8 text-center space-y-3 px-4 max-w-xs">
+              <div className="text-sm font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                Loading Portfolio
+              </div>
+              <div className="text-sm font-medium text-accent animate-pulse min-h-[20px]">
+                {statusText}
+              </div>
               
-              {/* Center core holding the SS initials */}
-              <div className="absolute inset-[28px] rounded-full bg-background/90 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] dark:shadow-[inset_0_0_20px_rgba(var(--primary),0.2)]">
-                <span className="text-4xl sm:text-5xl font-serif font-bold tracking-[0.1em] bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent pl-2 drop-shadow-sm">SS</span>
+              {/* Small horizontal progress bar */}
+              <div className="w-48 h-1 bg-muted/30 rounded-full overflow-hidden mx-auto">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary via-accent to-secondary transition-all duration-300 ease-out rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
           </div>
@@ -168,18 +299,21 @@ export default function HomePage() {
 
               <div className="flex items-center justify-center lg:justify-start space-x-6 pt-2 sm:pt-4">
                 <span className="text-muted-foreground text-sm">Follow me:</span>
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-muted-foreground ${social.color} transition-all duration-300 transform hover:scale-110`}
-                    aria-label={social.label}
-                  >
-                    <social.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </a>
-                ))}
+                {socialLinks.map((social) => {
+                  const IconComp = getSocialIcon(social.id)
+                  return (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-accent transition-all duration-300 transform hover:scale-110"
+                      aria-label={social.label}
+                    >
+                      <IconComp className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </a>
+                  )
+                })}
               </div>
             </div>
 
@@ -217,13 +351,13 @@ export default function HomePage() {
         )}
 
       {/* All Portfolio Sections with Conditional Rendering */}
-      {isEnabled('experience') && <ExperienceSection />}
-      {isEnabled('skills') && <SkillsSection />}
-      {isEnabled('projects') && <ProjectsSection />}
-      {isEnabled('education') && <EducationSection />}
-      {isEnabled('certifications') && <CertificationsSection />}
-      {isEnabled('blogs') && <BlogSection />}
-      {isEnabled('endorsements') && <EndorsementsSection />}
+      {isEnabled('experience') && <ExperienceSection data={fetchedData.experience} />}
+      {isEnabled('skills') && <SkillsSection data={fetchedData.skills} />}
+      {isEnabled('projects') && <ProjectsSection data={fetchedData.projects} />}
+      {isEnabled('education') && <EducationSection data={fetchedData.education} />}
+      {isEnabled('certifications') && <CertificationsSection data={fetchedData.certifications} />}
+      {isEnabled('blogs') && <BlogSection data={fetchedData.blogs} />}
+      {isEnabled('endorsements') && <EndorsementsSection data={fetchedData.endorsements} />}
       {isEnabled('video') && <VideoResumeSection />}
       {isEnabled('contact') && <ContactSection />}
 

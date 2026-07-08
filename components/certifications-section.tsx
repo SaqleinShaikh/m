@@ -17,9 +17,9 @@ interface Certification {
   type: string
 }
 
-export default function CertificationsSection() {
-  const [certifications, setCertifications] = useState<Certification[]>([])
-  const [loading, setLoading] = useState(true)
+export default function CertificationsSection({ data }: { data?: Certification[] }) {
+  const [certifications, setCertifications] = useState<Certification[]>(data || [])
+  const [loading, setLoading] = useState(!data)
   const certsScrollRef = useRef<HTMLDivElement>(null)
   const awardsScrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeftCerts, setCanScrollLeftCerts] = useState(false)
@@ -30,6 +30,11 @@ export default function CertificationsSection() {
   const [activeTitle, setActiveTitle] = useState<string>("")
 
   useEffect(() => {
+    if (data) {
+      setCertifications(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/certifications')
       .then(res => res.json())
       .then(data => {
@@ -41,7 +46,7 @@ export default function CertificationsSection() {
         setCertifications([])
         setLoading(false)
       })
-  }, [])
+  }, [data])
 
   const certs = certifications.filter(c => c.type === 'certification')
   const awards = certifications.filter(c => c.type === 'award')

@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Heart, MessageCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { usePageTransition } from "@/components/page-transition-loader"
 
 interface Blog {
   id: string
@@ -21,8 +22,12 @@ interface Blog {
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { endTransition, startTransition } = usePageTransition()
 
   useEffect(() => {
+    // Clear any incoming transition overlay immediately
+    endTransition()
     fetch('/api/blogs')
       .then(res => res.json())
       .then(data => {
@@ -35,6 +40,11 @@ export default function BlogsPage() {
         setLoading(false)
       })
   }, [])
+
+  const handleBlogClick = (slug: string) => {
+    startTransition()
+    router.push(`/blogs/${slug}`)
+  }
 
   if (loading) {
     return (
@@ -53,10 +63,18 @@ export default function BlogsPage() {
 
       <section aria-label="All blog posts" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {blogs.map((post) => (
-          <Link key={post.id} href={`/blogs/${post.slug}`} className="group">
-            <Card className="modern-card overflow-hidden">
+          <div
+            key={post.id}
+            className="group cursor-pointer"
+            onClick={() => handleBlogClick(post.slug)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBlogClick(post.slug) }}
+            aria-label={`Open blog: ${post.title}`}
+          >
+            <Card className="modern-card overflow-hidden hover:shadow-lg transition-shadow duration-300">
               {post.image ? (
-                <img src={post.image || "/placeholder.svg"} alt={post.title} className="w-full h-40 object-cover" />
+                <img src={post.image || "/placeholder.svg"} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
               ) : null}
               <div className="p-4">
                 <h2 className="text-lg font-semibold group-hover:text-secondary transition-colors">{post.title}</h2>
@@ -78,7 +96,7 @@ export default function BlogsPage() {
                 </div>
               </div>
             </Card>
-          </Link>
+          </div>
         ))}
       </section>
     </main>

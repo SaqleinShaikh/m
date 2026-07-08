@@ -4,6 +4,7 @@ import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { Toaster } from "sonner"
+import { PageTransitionProvider } from "@/components/page-transition-loader"
 import "./globals.css"
 
 const playfair = Playfair_Display({
@@ -40,7 +41,9 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${sourceSans.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <PageTransitionProvider>
+            {children}
+          </PageTransitionProvider>
           <ScrollToTop />
           <Toaster position="top-center" richColors />
         </ThemeProvider>

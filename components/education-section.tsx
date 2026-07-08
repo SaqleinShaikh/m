@@ -13,11 +13,16 @@ interface Education {
   icon: string
 }
 
-export default function EducationSection() {
-  const [education, setEducation] = useState<Education[]>([])
-  const [loading, setLoading] = useState(true)
+export default function EducationSection({ data }: { data?: Education[] }) {
+  const [education, setEducation] = useState<Education[]>(data || [])
+  const [loading, setLoading] = useState(!data)
 
   useEffect(() => {
+    if (data) {
+      setEducation(data)
+      setLoading(false)
+      return
+    }
     fetch('/api/education')
       .then(res => res.json())
       .then(data => {
@@ -29,7 +34,7 @@ export default function EducationSection() {
         setEducation([])
         setLoading(false)
       })
-  }, [])
+  }, [data])
 
   if (loading) {
     return (
