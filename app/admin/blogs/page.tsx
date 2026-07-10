@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, Plus, Edit, Trash2, Eye, EyeOff, FileText, Globe } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
@@ -38,6 +39,85 @@ interface BlogPost {
   visible: boolean
   created_at: string
   updated_at: string
+}
+
+function BlogCard({
+  blog,
+  onEdit,
+  onToggleVisibility,
+  onDelete,
+}: {
+  blog: BlogPost
+  onEdit: (blog: BlogPost) => void
+  onToggleVisibility: (blog: BlogPost) => void
+  onDelete: (id: string) => void
+}) {
+  return (
+    <Card
+      className="group hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 overflow-hidden"
+    >
+      <CardContent className="p-0">
+        <div className="relative overflow-hidden">
+          <img
+            src={blog.image || '/placeholder.svg'}
+            alt={blog.title}
+            className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute top-3 right-3 flex gap-2">
+            <Badge
+              variant={blog.visible ? "default" : "secondary"}
+              className={blog.visible ? "bg-green-500/90 backdrop-blur-sm" : "bg-amber-500/90 backdrop-blur-sm text-white"}
+            >
+              {blog.visible ? "Published" : "Draft"}
+            </Badge>
+          </div>
+        </div>
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Badge variant="outline" className="text-xs border-accent/30">
+              {blog.category}
+            </Badge>
+            <span className="text-xs text-muted-foreground">{blog.published_date}</span>
+          </div>
+          <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+            {blog.title}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {blog.excerpt}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 hover:bg-accent/10 hover:border-accent/40"
+              onClick={() => onEdit(blog)}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hover:bg-accent/10 hover:border-accent/40"
+              onClick={() => onToggleVisibility(blog)}
+              title={blog.visible ? "Move to Drafts" : "Publish"}
+            >
+              {blog.visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
+              onClick={() => onDelete(blog.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function AdminBlogsPage() {
@@ -166,6 +246,7 @@ export default function AdminBlogsPage() {
 
       if (response.ok) {
         setBlogs(blogs.filter(b => b.id !== id))
+        toast.success("Blog post deleted")
       }
     } catch (error) {
       console.error('Failed to delete blog:', error)
@@ -184,11 +265,15 @@ export default function AdminBlogsPage() {
         setBlogs(blogs.map(b =>
           b.id === blog.id ? { ...b, visible: !b.visible } : b
         ))
+        toast.success(blog.visible ? "Moved to drafts" : "Published successfully")
       }
     } catch (error) {
       console.error('Failed to toggle visibility:', error)
     }
   }
+
+  const publishedBlogs = blogs.filter(b => b.visible)
+  const draftBlogs = blogs.filter(b => !b.visible)
 
   if (!isAuthenticated || loading) {
     return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>
@@ -213,7 +298,9 @@ export default function AdminBlogsPage() {
                   Blog Management
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {blogs.filter(b => b.visible).length} published • {blogs.filter(b => !b.visible).length} drafts
+                  <span className="text-green-500 font-medium">{publishedBlogs.length} published</span>
+                  {" • "}
+                  <span className="text-amber-500 font-medium">{draftBlogs.length} drafts</span>
                 </p>
               </div>
             </div>
@@ -247,74 +334,99 @@ export default function AdminBlogsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogs.map((blog) => (
-              <Card
-                key={blog.id}
-                className="group hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-card/80 backdrop-blur-sm border-accent/20 hover:border-accent/40 overflow-hidden"
+          <Tabs defaultValue="published" className="w-full">
+            <TabsList className="mb-6 bg-card/60 backdrop-blur-sm border border-border/40 p-1 h-auto">
+              <TabsTrigger
+                value="published"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-accent/20 data-[state=active]:text-accent data-[state=active]:shadow-sm px-4 py-2"
               >
-                <CardContent className="p-0">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={blog.image || '/placeholder.svg'}
-                      alt={blog.title}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute top-3 right-3 flex gap-2">
-                      <Badge
-                        variant={blog.visible ? "default" : "secondary"}
-                        className={blog.visible ? "bg-green-500/90 backdrop-blur-sm" : "bg-gray-500/90 backdrop-blur-sm"}
-                      >
-                        {blog.visible ? "Published" : "Draft"}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="outline" className="text-xs border-accent/30">
-                        {blog.category}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">{blog.published_date}</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
-                      {blog.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {blog.excerpt}
+                <Globe className="h-4 w-4" />
+                Published
+                <Badge variant="secondary" className="ml-1 bg-green-500/20 text-green-600 border-green-500/30 text-xs">
+                  {publishedBlogs.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="drafts"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-accent/20 data-[state=active]:text-accent data-[state=active]:shadow-sm px-4 py-2"
+              >
+                <FileText className="h-4 w-4" />
+                Drafts
+                <Badge variant="secondary" className="ml-1 bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs">
+                  {draftBlogs.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="published">
+              {publishedBlogs.length === 0 ? (
+                <Card className="border-dashed border-2 bg-card/50 backdrop-blur-sm">
+                  <CardContent className="p-12 text-center">
+                    <Globe className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No published posts</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Published posts will appear here and on your public website.
                     </p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 hover:bg-accent/10 hover:border-accent/40"
-                        onClick={() => handleOpenDialog(blog)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="hover:bg-accent/10 hover:border-accent/40"
-                        onClick={() => handleToggleVisibility(blog)}
-                      >
-                        {blog.visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
-                        onClick={() => handleDelete(blog.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => handleOpenDialog()}
+                      className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create & Publish Post
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {publishedBlogs.map((blog) => (
+                    <BlogCard
+                      key={blog.id}
+                      blog={blog}
+                      onEdit={handleOpenDialog}
+                      onToggleVisibility={handleToggleVisibility}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="drafts">
+              {draftBlogs.length === 0 ? (
+                <Card className="border-dashed border-2 bg-card/50 backdrop-blur-sm">
+                  <CardContent className="p-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No drafts</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Draft posts are saved here but not visible on your public website.
+                      Create a new post without enabling "Publish" to save it as a draft.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      These posts are <strong>only visible to you</strong> as admin. They are not shown on your public website.
+                      Use the <Eye className="h-3 w-3 inline" /> button to publish them.
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {draftBlogs.map((blog) => (
+                      <BlogCard
+                        key={blog.id}
+                        blog={blog}
+                        onEdit={handleOpenDialog}
+                        onToggleVisibility={handleToggleVisibility}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </main>
 
@@ -361,14 +473,29 @@ export default function AdminBlogsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image" className="text-sm font-semibold">Image URL</Label>
-              <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="/blog-image.png"
-                className="mt-2 border-accent/20 focus:border-accent"
-              />
+              <Label htmlFor="image" className="text-sm font-semibold">Cover Image URL</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  id="image"
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  placeholder="/blog-image.png or https://..."
+                  className="border-accent/20 focus:border-accent"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                💡 Upload images in <strong>Admin → Settings → Image Manager</strong>, then copy the URL here.
+              </p>
+              {formData.image && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-border/40 w-32 h-20">
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -393,9 +520,6 @@ export default function AdminBlogsPage() {
                   placeholder="Write your blog content here... You can paste formatted text with images!"
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                💡 Tip: You can copy-paste content from Word, Google Docs, or any website with formatting and images!
-              </p>
             </div>
 
             <div className="flex items-center space-x-3 p-4 bg-accent/5 rounded-lg border border-accent/20">
@@ -404,9 +528,16 @@ export default function AdminBlogsPage() {
                 checked={formData.visible}
                 onCheckedChange={(checked) => setFormData({ ...formData, visible: checked })}
               />
-              <Label htmlFor="visible" className="text-sm font-medium cursor-pointer">
-                Publish immediately (make visible on website)
-              </Label>
+              <div>
+                <Label htmlFor="visible" className="text-sm font-medium cursor-pointer">
+                  {formData.visible ? '🌍 Published — visible on website' : '📝 Draft — not visible on website'}
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {formData.visible
+                    ? 'Toggle off to save as draft without publishing'
+                    : 'Toggle on to publish this post to your website'}
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-4">
