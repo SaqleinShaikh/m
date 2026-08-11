@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { Toaster } from "sonner"
 import { PageTransitionProvider } from "@/components/page-transition-loader"
+import { AnalyticsTracker } from "@/components/analytics-tracker"
 import "./globals.css"
 
 const playfair = Playfair_Display({
@@ -44,6 +45,7 @@ export default function RootLayout({
           <PageTransitionProvider>
             {children}
           </PageTransitionProvider>
+          <AnalyticsTracker />
           <ScrollToTop />
           <Toaster position="top-center" richColors />
         </ThemeProvider>
@@ -51,3 +53,4 @@ export default function RootLayout({
     </html>
   )
 }
+

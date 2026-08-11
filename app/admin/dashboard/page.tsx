@@ -46,6 +46,13 @@ export default function AdminDashboard() {
 
   const dashboardCards = [
     {
+      title: "Visitor Analytics",
+      description: "Track page views, sessions, locations, and user flows",
+      icon: Activity,
+      href: "/admin/analytics",
+      color: "from-indigo-600 to-purple-600"
+    },
+    {
       title: "Email Messages",
       description: "View all emails from contact form and endorsements",
       icon: Mail,
