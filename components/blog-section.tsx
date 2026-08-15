@@ -42,7 +42,7 @@ export default function BlogSection({ data }: { data?: Blog[] }) {
       setLoading(false)
       return
     }
-    fetch('/api/blogs')
+    fetch('/api/blogs?published=true')
       .then(res => res.json())
       .then(data => {
         setBlogs(Array.isArray(data) ? data : [])

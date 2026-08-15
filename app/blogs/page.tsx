@@ -1,104 +1,23 @@
-"use client"
+import type { Metadata } from "next"
+import { supabaseAdmin } from "@/lib/supabase"
+import BlogsListClient from "./blogs-list-client"
 
-import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Heart, MessageCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { usePageTransition } from "@/components/page-transition-loader"
+// ISR: cache for 60 seconds, regenerate on next request after expiry
+export const revalidate = 60
 
-interface Blog {
-  id: string
-  slug: string
-  title: string
-  excerpt: string
-  category: string
-  read_time: string
-  published_date: string
-  image: string
-  likes_count: number
-  comments_count: number
+export const metadata: Metadata = {
+  title: "Blog | Saqlein Shaikh",
+  description: "Browse all articles by Saqlein Shaikh – Mendix Developer, UX thinker, and technology enthusiast.",
 }
 
-export default function BlogsPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const { endTransition, startTransition } = usePageTransition()
+export default async function BlogsPage() {
+  const { data: blogs, error } = await supabaseAdmin
+    .from("blog_posts")
+    .select("id, slug, title, excerpt, category, read_time, published_date, image, likes_count, comments_count")
+    .eq("visible", true)
+    .order("created_at", { ascending: false })
 
-  useEffect(() => {
-    // Clear any incoming transition overlay immediately
-    endTransition()
-    fetch('/api/blogs')
-      .then(res => res.json())
-      .then(data => {
-        setBlogs(Array.isArray(data) ? data : [])
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Error fetching blogs:', err)
-        setBlogs([])
-        setLoading(false)
-      })
-  }, [])
+  const posts = error ? [] : (blogs ?? [])
 
-  const handleBlogClick = (slug: string) => {
-    startTransition()
-    router.push(`/blogs/${slug}`)
-  }
-
-  if (loading) {
-    return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <p className="text-center text-muted-foreground">Loading blogs...</p>
-      </main>
-    )
-  }
-
-  return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif font-semibold text-balance">All Blogs</h1>
-        <p className="text-muted-foreground mt-2">Browse every post in one place.</p>
-      </header>
-
-      <section aria-label="All blog posts" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs.map((post) => (
-          <div
-            key={post.id}
-            className="group cursor-pointer"
-            onClick={() => handleBlogClick(post.slug)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBlogClick(post.slug) }}
-            aria-label={`Open blog: ${post.title}`}
-          >
-            <Card className="modern-card overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              {post.image ? (
-                <img src={post.image || "/placeholder.svg"} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
-              ) : null}
-              <div className="p-4">
-                <h2 className="text-lg font-semibold group-hover:text-secondary transition-colors">{post.title}</h2>
-                <p className="text-sm text-muted-foreground mt-1">{post.excerpt}</p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-3">
-                  {post.category ? <span>{post.category}</span> : null}
-                  {post.read_time ? <span>• {post.read_time}</span> : null}
-                  {post.published_date ? <span>• {new Date(post.published_date).toLocaleDateString()}</span> : null}
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    {post.likes_count || 0}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3" />
-                    {post.comments_count || 0}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        ))}
-      </section>
-    </main>
-  )
+  return <BlogsListClient initialBlogs={posts} />
 }

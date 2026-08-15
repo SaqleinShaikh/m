@@ -114,7 +114,7 @@ export default function HomePage() {
     fetchItem('endorsements', '/api/endorsements', 'testimonials', [])
     fetchItem('education', '/api/education', 'education info', [])
     fetchItem('certifications', '/api/certifications', 'certifications', [])
-    fetchItem('blogs', '/api/blogs', 'blog articles', [])
+    fetchItem('blogs', '/api/blogs?published=true', 'blog articles', [])
   }, [])
 
   // Trigger smooth transition out when progress hits 100%

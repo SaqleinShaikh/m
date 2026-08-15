@@ -5,10 +5,13 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const slug = searchParams.get('slug')
+    // ?published=true → only return visible posts (for public-facing pages)
+    // omitting the param → return ALL posts including drafts (for admin)
+    const publishedOnly = searchParams.get('published') === 'true'
     
     if (slug) {
       // Fetch single post with full content
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('blog_posts')
         .select('*')
         .eq('slug', slug)
@@ -26,11 +29,18 @@ export async function GET(request: Request) {
         }
       })
     } else {
-      // Fetch all posts but exclude heavy content block
-      const { data, error } = await supabase
+      // Fetch posts but exclude heavy content field
+      let query = supabaseAdmin
         .from('blog_posts')
         .select('id, slug, title, excerpt, category, read_time, published_date, image, likes_count, comments_count, created_at, visible, author')
         .order('created_at', { ascending: false })
+
+      // Public pages pass ?published=true to only get visible posts
+      if (publishedOnly) {
+        query = query.eq('visible', true)
+      }
+
+      const { data, error } = await query
         
       if (error) throw error
       return NextResponse.json(data, {

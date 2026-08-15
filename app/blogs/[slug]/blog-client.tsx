@@ -35,16 +35,22 @@ interface Comment {
   approved: boolean
 }
 
-export default function BlogDetailClient() {
+interface Props {
+  /** Pre-fetched post from the Server Component. When provided the client
+   *  skips its own fetch and renders immediately — no spinner on direct load. */
+  initialPost?: Blog | null
+}
+
+export default function BlogDetailClient({ initialPost }: Props) {
   const params = useParams()
-  const slug = params.slug as string
-  
-  const [post, setPost] = useState<Blog | null>(null)
+  const slug = params?.slug as string
+
+  const [post, setPost] = useState<Blog | null>(initialPost ?? null)
   const [recommended, setRecommended] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialPost) // skip loading state if SSR gave us the post
   const [comments, setComments] = useState<Comment[]>([])
   const [hasLiked, setHasLiked] = useState(false)
-  const [likesCount, setLikesCount] = useState(0)
+  const [likesCount, setLikesCount] = useState(initialPost?.likes_count ?? 0)
   const [showEmailPrompt, setShowEmailPrompt] = useState(false)
   const [newComment, setNewComment] = useState({
     name: "",
@@ -57,21 +63,38 @@ export default function BlogDetailClient() {
   useEffect(() => {
     window.scrollTo(0, 0)
     endTransition() // clear any incoming page transition overlay
+
+    if (initialPost) {
+      // Post was pre-fetched server-side — only load interactive data client-side
+      fetchComments(initialPost.id)
+      checkUserLike(initialPost.id)
+      // Fetch recommended posts in background (non-blocking)
+      fetch('/api/blogs?published=true')
+        .then(res => res.ok ? res.json() : [])
+        .then(allPosts => {
+          if (Array.isArray(allPosts)) {
+            setRecommended(allPosts.filter((b: Blog) => b.slug !== initialPost.slug).slice(0, 3))
+          }
+        })
+        .catch(() => {/* non-critical */})
+      return
+    }
+
+    // Fallback: client-side fetch (e.g. during client-side navigation without SSR post)
+    const currentSlug = slug
     Promise.all([
-      fetch(`/api/blogs?slug=${slug}`).then(res => res.ok ? res.json() : null),
-      fetch('/api/blogs').then(res => res.ok ? res.json() : [])
+      fetch(`/api/blogs?slug=${currentSlug}`).then(res => res.ok ? res.json() : null),
+      fetch('/api/blogs?published=true').then(res => res.ok ? res.json() : [])
     ])
     .then(([foundPost, allPosts]) => {
       if (foundPost && !foundPost.error) {
         setPost(foundPost)
         setLikesCount(foundPost.likes_count || 0)
-        
-        // Setup recommended
+
         if (Array.isArray(allPosts)) {
-          setRecommended(allPosts.filter((b: Blog) => b.slug !== slug).slice(0, 3))
+          setRecommended(allPosts.filter((b: Blog) => b.slug !== currentSlug).slice(0, 3))
         }
-        
-        // Fetch comments and check likes
+
         fetchComments(foundPost.id)
         checkUserLike(foundPost.id)
       }
@@ -81,7 +104,7 @@ export default function BlogDetailClient() {
       console.error('Error fetching blog:', err)
       setLoading(false)
     })
-  }, [slug])
+  }, [slug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchComments = async (blogId: string) => {
     try {
@@ -113,7 +136,6 @@ export default function BlogDetailClient() {
 
     const userEmail = localStorage.getItem('userEmail')
 
-    // If no email, show dialog
     if (!userEmail) {
       setShowEmailPrompt(true)
       return
@@ -133,7 +155,6 @@ export default function BlogDetailClient() {
 
     try {
       if (hasLiked) {
-        // Unlike
         const response = await fetch(`/api/blog-likes?blogId=${post.id}&userEmail=${userEmail}`, {
           method: 'DELETE'
         })
@@ -142,13 +163,12 @@ export default function BlogDetailClient() {
           setLikesCount(prev => prev - 1)
         }
       } else {
-        // Like
         const response = await fetch('/api/blog-likes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             blogId: post.id,
-            userName: userEmail.split('@')[0], // Use email prefix as name
+            userName: userEmail.split('@')[0],
             userEmail
           })
         })
@@ -187,7 +207,6 @@ export default function BlogDetailClient() {
       if (response.ok) {
         alert('Thank you! Your comment has been submitted and will appear after approval.')
         setNewComment({ name: "", email: "", comment: "" })
-        // Save user info for future
         localStorage.setItem('userName', newComment.name)
         localStorage.setItem('userEmail', newComment.email)
       } else {
@@ -228,7 +247,7 @@ export default function BlogDetailClient() {
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-3">
             {post.category ? <span>{post.category}</span> : null}
             {post.read_time ? <span>• {post.read_time}</span> : null}
-            {post.published_date ? <span>• {new Date(post.published_date).toLocaleDateString()}</span> : null}
+            {post.published_date ? <span>• {new Date(post.published_date).toLocaleDateString('en-GB')}</span> : null}
           </div>
         </header>
         {post.image ? (
@@ -322,7 +341,7 @@ export default function BlogDetailClient() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold">{comment.user_name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(comment.created_at).toLocaleDateString()}
+                        {new Date(comment.created_at).toLocaleDateString('en-GB')}
                       </span>
                     </div>
                     <p className="text-sm text-foreground break-words">{comment.comment}</p>
@@ -347,7 +366,7 @@ export default function BlogDetailClient() {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-3">
                     {rec.category ? <span>{rec.category}</span> : null}
                     {rec.read_time ? <span>• {rec.read_time}</span> : null}
-                    {rec.published_date ? <span>• {new Date(rec.published_date).toLocaleDateString()}</span> : null}
+                    {rec.published_date ? <span>• {new Date(rec.published_date).toLocaleDateString('en-GB')}</span> : null}
                   </div>
                 </Card>
               </Link>

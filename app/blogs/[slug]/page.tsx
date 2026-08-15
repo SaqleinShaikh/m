@@ -1,22 +1,27 @@
 import type { Metadata } from "next"
-import { supabase } from "@/lib/supabase"
+import { notFound } from "next/navigation"
+import { supabaseAdmin } from "@/lib/supabase"
 import BlogDetailClient from "./blog-client"
 
+// ISR: cache this page for 60 seconds, then re-generate on next request
+export const revalidate = 60
+
 interface Props {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 /**
  * generateMetadata runs on the SERVER at request time.
  * LinkedIn, Twitter, Google and all crawlers will see these tags
  * because the HTML is rendered before JS runs.
+ * Uses supabaseAdmin to bypass RLS so OG tags always populate.
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = params
+  const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://saqleinshaikh.in"
 
   try {
-    const { data: post, error } = await supabase
+    const { data: post, error } = await supabaseAdmin
       .from("blog_posts")
       .select("title, excerpt, image, author, category, published_date, slug")
       .eq("slug", slug)
@@ -86,10 +91,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Page component — server component wrapper that renders the client component.
- * Next.js will inject the <meta> tags from generateMetadata into the <head>
- * before the page is sent to the browser (and to crawlers).
+ * Server Component — fetches the full post on the server and passes it
+ * as `initialPost` to the client component. This means the article HTML
+ * is embedded in the first server response — no loading spinner on direct
+ * links or social shares.
  */
-export default function BlogDetailPage({ params }: Props) {
-  return <BlogDetailClient />
+export default async function BlogDetailPage({ params }: Props) {
+  const { slug } = await params
+
+  const { data: post, error } = await supabaseAdmin
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("visible", true)
+    .single()
+
+  if (error || !post) {
+    notFound()
+  }
+
+  return <BlogDetailClient initialPost={post} />
 }
